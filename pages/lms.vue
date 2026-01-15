@@ -13,6 +13,10 @@ import {
   Filter,
 } from 'lucide-vue-next'
 
+definePageMeta({
+  middleware: 'admin',
+})
+
 useHead({
   title: 'Learning Hub',
 })

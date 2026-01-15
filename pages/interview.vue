@@ -11,6 +11,10 @@ import {
   BarChart3,
 } from 'lucide-vue-next'
 
+definePageMeta({
+  middleware: 'admin',
+})
+
 useHead({
   title: 'AI Interview',
 })

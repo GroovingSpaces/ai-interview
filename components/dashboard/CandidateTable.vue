@@ -24,6 +24,7 @@ import {
 } from 'lucide-vue-next'
 
 const candidatesStore = useCandidatesStore()
+const router = useRouter()
 
 const sorting = ref<SortingState>([])
 const globalFilter = ref('')
@@ -142,7 +143,7 @@ const columns: ColumnDef<Candidate>[] = [
       return h('div', { class: 'flex items-center gap-1' }, [
         h('button', {
           class: 'p-2 rounded-lg hover:bg-muted/50 transition-colors',
-          onClick: () => candidatesStore.selectCandidate(row.original.id),
+          onClick: () => router.push(`/candidates/${row.original.id}`),
         }, [h(Eye, { class: 'w-4 h-4 text-muted-foreground' })]),
         h('button', {
           class: 'p-2 rounded-lg hover:bg-muted/50 transition-colors',
@@ -231,7 +232,8 @@ const table = useVueTable({
             <tr
               v-for="row in table.getRowModel().rows"
               :key="row.id"
-              class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+              class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+              @click="router.push(`/candidates/${row.original.id}`)"
             >
               <td
                 v-for="cell in row.getVisibleCells()"

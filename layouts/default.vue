@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +8,6 @@ import {
   FileText,
   Settings,
   Bell,
-  Search,
   Menu,
   X,
   ChevronRight,
@@ -16,27 +15,68 @@ import {
   Moon,
   Sun,
   ExternalLink,
+  Briefcase,
+  Shield,
 } from 'lucide-vue-next'
 import { useTheme } from '~/composables/useTheme'
+import { useAuthStore } from '~/stores/auth'
 
 const route = useRoute()
+const router = useRouter()
 const isSidebarOpen = ref(true)
 const isMobileSidebarOpen = ref(false)
 
 // Use theme composable for persistent theme switching
 const { isDark, toggleTheme } = useTheme()
 
-const navigation = [
+// Auth store
+const authStore = useAuthStore()
+
+// Initialize auth on mount
+onMounted(() => {
+  authStore.initAuth()
+})
+
+const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, external: false },
   { name: 'Candidates', href: '/candidates', icon: Users, external: false },
+  { name: 'Positions', href: '/positions', icon: Briefcase, external: false },
   { name: 'AI Interview', href: '/interview', icon: Video, external: false },
   { name: 'Learning Hub', href: '/lms', icon: GraduationCap, external: false },
   { name: 'Applications', href: '/apply', icon: FileText, external: true },
 ]
 
+// Add Users menu for staff (admin, hr, recruiter)
+const navigation = computed(() => {
+  const items = [...baseNavigation]
+  if (authStore.isStaff) {
+    // Insert Users menu after Positions
+    items.splice(3, 0, { name: 'Users', href: '/users', icon: Shield, external: false })
+  }
+  return items
+})
+
 const currentPage = computed(() => {
-  const current = navigation.find(n => n.href === route.path)
+  const current = navigation.value.find(n => 
+    route.path === n.href || route.path.startsWith(n.href + '/')
+  )
   return current?.name || 'Dashboard'
+})
+
+// Helper to check if a nav item is active
+function isNavActive(href: string): boolean {
+  if (href === '/') return route.path === '/'
+  return route.path === href || route.path.startsWith(href + '/')
+}
+
+const userInitials = computed(() => {
+  if (!authStore.user?.name) return 'U'
+  return authStore.user.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 })
 
 function toggleSidebar() {
@@ -45,6 +85,11 @@ function toggleSidebar() {
 
 function toggleMobileSidebar() {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
+}
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/portal-login')
 }
 </script>
 
@@ -100,7 +145,7 @@ function toggleMobileSidebar() {
 
       <!-- Navigation -->
       <nav class="p-4 space-y-2">
-        <template v-for="item in navigation" :key="item.name">
+        <template v-for="item in navigation" :key="item.name + item.href">
           <!-- External link (open in new tab) -->
           <a
             v-if="item.external"
@@ -136,7 +181,7 @@ function toggleMobileSidebar() {
             :to="item.href"
             :class="[
               'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
-              route.path === item.href
+              isNavActive(item.href)
                 ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             ]"
@@ -146,7 +191,7 @@ function toggleMobileSidebar() {
               :is="item.icon"
               :class="[
                 'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-                route.path === item.href ? 'text-foreground' : 'group-hover:scale-110',
+                isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110',
               ]"
             />
             <Transition
@@ -160,7 +205,7 @@ function toggleMobileSidebar() {
               <span v-if="isSidebarOpen" class="font-medium">{{ item.name }}</span>
             </Transition>
             <ChevronRight
-              v-if="isSidebarOpen && route.path === item.href"
+              v-if="isSidebarOpen && isNavActive(item.href)"
               class="w-4 h-4 ml-auto text-foreground"
             />
           </NuxtLink>
@@ -168,7 +213,7 @@ function toggleMobileSidebar() {
       </nav>
 
       <!-- Bottom section -->
-      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border space-y-1">
         <button
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200',
@@ -188,6 +233,16 @@ function toggleMobileSidebar() {
         >
           <Settings class="w-5 h-5 flex-shrink-0" />
           <span v-if="isSidebarOpen" class="font-medium">Settings</span>
+        </button>
+        <button
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200',
+            'text-score-low hover:bg-score-low/10',
+          ]"
+          @click="handleLogout"
+        >
+          <LogOut class="w-5 h-5 flex-shrink-0" />
+          <span v-if="isSidebarOpen" class="font-medium">Logout</span>
         </button>
       </div>
     </aside>
@@ -227,19 +282,6 @@ function toggleMobileSidebar() {
           </div>
 
           <div class="flex items-center gap-3">
-            <!-- Search -->
-            <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-muted/50 border border-border">
-              <Search class="w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search..."
-                class="bg-transparent border-none outline-none text-sm w-48 placeholder:text-muted-foreground"
-              >
-              <kbd class="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-background text-xs text-muted-foreground border border-border">
-                ⌘K
-              </kbd>
-            </div>
-
             <!-- Notifications -->
             <button class="relative p-2 rounded-xl hover:bg-muted/50 transition-colors">
               <Bell class="w-5 h-5" />
@@ -247,15 +289,15 @@ function toggleMobileSidebar() {
             </button>
 
             <!-- User avatar -->
-            <button class="flex items-center gap-3 p-1.5 rounded-xl hover:bg-muted/50 transition-colors">
+            <div class="flex items-center gap-3 p-1.5 rounded-xl">
               <div class="w-8 h-8 rounded-lg bg-gradient-to-t from-ai-orange to-ai-red flex items-center justify-center text-sm font-semibold text-white">
-                HR
+                {{ userInitials }}
               </div>
-              <div class="hidden lg:block text-left">
-                <p class="text-sm font-medium">HR Admin</p>
-                <p class="text-xs text-muted-foreground">IT Manager</p>
+              <div v-if="authStore.user" class="hidden lg:block text-left">
+                <p class="text-sm font-medium">{{ authStore.user.name }}</p>
+                <p class="text-xs text-muted-foreground capitalize">{{ authStore.user.role }}</p>
               </div>
-            </button>
+            </div>
           </div>
         </div>
       </header>

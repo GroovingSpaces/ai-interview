@@ -13,6 +13,11 @@ import {
   Sparkles,
 } from 'lucide-vue-next'
 
+// Protect dashboard - only for staff
+definePageMeta({
+  middleware: 'admin',
+})
+
 useHead({
   title: 'Dashboard',
 })

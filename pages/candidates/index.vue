@@ -3,12 +3,21 @@ import { useCandidatesStore } from '~/stores/candidates'
 import { Search, Filter, Plus, Download, LayoutGrid, List } from 'lucide-vue-next'
 import { ref } from 'vue'
 
+definePageMeta({
+  middleware: 'admin',
+})
+
 useHead({
   title: 'Candidates',
 })
 
+const router = useRouter()
 const candidatesStore = useCandidatesStore()
 const viewMode = ref<'list' | 'grid'>('list')
+
+function openCandidateDetail(id: string) {
+  router.push(`/candidates/${id}`)
+}
 
 const stageOptions = [
   { value: 'all', label: 'All Stages' },
@@ -101,7 +110,7 @@ const stageOptions = [
         variant="glass"
         hover
         class="cursor-pointer"
-        @click="candidatesStore.selectCandidate(candidate.id)"
+        @click="openCandidateDetail(candidate.id)"
       >
         <div class="flex items-start gap-4">
           <UiAvatar :alt="candidate.name" size="lg" />
@@ -132,9 +141,6 @@ const stageOptions = [
         </div>
       </UiCard>
     </div>
-
-    <!-- Candidate Detail Sidebar -->
-    <DashboardCandidateDetail />
   </div>
 </template>
 

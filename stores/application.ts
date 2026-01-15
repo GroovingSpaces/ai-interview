@@ -343,6 +343,83 @@ export const useApplicationStore = defineStore('application', () => {
     error.value = null
   }
 
+  // CRUD Operations for Positions
+  function addPosition(position: Omit<JobPosition, 'id'>) {
+    const newId = String(Date.now())
+    availablePositions.value.push({
+      ...position,
+      id: newId,
+    })
+    return newId
+  }
+
+  function updatePosition(id: string, updates: Partial<Omit<JobPosition, 'id'>>) {
+    const index = availablePositions.value.findIndex(p => p.id === id)
+    if (index !== -1) {
+      availablePositions.value[index] = {
+        ...availablePositions.value[index],
+        ...updates,
+      }
+      return true
+    }
+    return false
+  }
+
+  function deletePosition(id: string) {
+    const index = availablePositions.value.findIndex(p => p.id === id)
+    if (index !== -1) {
+      availablePositions.value.splice(index, 1)
+      return true
+    }
+    return false
+  }
+
+  function getPositionById(id: string) {
+    return availablePositions.value.find(p => p.id === id)
+  }
+
+  // Position filtering
+  const positionSearchQuery = ref('')
+  const positionTypeFilter = ref<string>('all')
+  const positionDepartmentFilter = ref<string>('all')
+
+  const filteredPositions = computed(() => {
+    let result = availablePositions.value
+
+    if (positionSearchQuery.value) {
+      const query = positionSearchQuery.value.toLowerCase()
+      result = result.filter(p => 
+        p.title.toLowerCase().includes(query) ||
+        p.department.toLowerCase().includes(query) ||
+        p.location.toLowerCase().includes(query)
+      )
+    }
+
+    if (positionTypeFilter.value !== 'all') {
+      result = result.filter(p => p.type === positionTypeFilter.value)
+    }
+
+    if (positionDepartmentFilter.value !== 'all') {
+      result = result.filter(p => p.department === positionDepartmentFilter.value)
+    }
+
+    return result
+  })
+
+  const departments = computed(() => {
+    const depts = new Set(availablePositions.value.map(p => p.department))
+    return Array.from(depts)
+  })
+
+  const positionStats = computed(() => ({
+    total: availablePositions.value.length,
+    fullTime: availablePositions.value.filter(p => p.type === 'full-time').length,
+    partTime: availablePositions.value.filter(p => p.type === 'part-time').length,
+    contract: availablePositions.value.filter(p => p.type === 'contract').length,
+    internship: availablePositions.value.filter(p => p.type === 'internship').length,
+    remote: availablePositions.value.filter(p => p.remote).length,
+  }))
+
   return {
     status,
     progress,
@@ -356,6 +433,18 @@ export const useApplicationStore = defineStore('application', () => {
     uploadResume,
     selectPosition,
     reset,
+    // Position CRUD
+    addPosition,
+    updatePosition,
+    deletePosition,
+    getPositionById,
+    // Position filtering
+    positionSearchQuery,
+    positionTypeFilter,
+    positionDepartmentFilter,
+    filteredPositions,
+    departments,
+    positionStats,
   }
 })
 
