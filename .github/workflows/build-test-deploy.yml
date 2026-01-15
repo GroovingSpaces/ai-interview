@@ -24,8 +24,8 @@ jobs:
     name: 🚀 Deploy AI Interview (Prod)
     runs-on: ubuntu-latest
     environment:
-      name: prod-wms-general
-      url: hhttps://wms-dev.logspace.id/
+      name: prod-ai interview
+      url: https://hcm.brightyindonesia.com/
     needs: docker-build-test
 
     steps:
