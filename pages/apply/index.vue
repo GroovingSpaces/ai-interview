@@ -87,7 +87,7 @@ function submitApplication() {
             :class="[
               'w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300',
               currentStep >= step.id
-                ? 'bg-gradient-to-br from-ai-cyan to-ai-purple text-white'
+                ? 'bg-gradient-to-t from-ai-orange to-ai-red text-white'
                 : 'bg-muted text-muted-foreground',
             ]"
           >
@@ -214,8 +214,8 @@ function submitApplication() {
     <!-- Features Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
       <div class="glass-card p-6 text-center">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-cyan/20 flex items-center justify-center mb-4">
-          <Sparkles class="w-7 h-7 text-ai-cyan" />
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-red/20 flex items-center justify-center mb-4">
+          <Sparkles class="w-7 h-7 text-ai-red" />
         </div>
         <h3 class="font-semibold text-foreground mb-2">AI-Powered Matching</h3>
         <p class="text-sm text-muted-foreground">
@@ -223,8 +223,8 @@ function submitApplication() {
         </p>
       </div>
       <div class="glass-card p-6 text-center">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-purple/20 flex items-center justify-center mb-4">
-          <svg class="w-7 h-7 text-ai-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-orange/20 flex items-center justify-center mb-4">
+          <svg class="w-7 h-7 text-ai-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -234,8 +234,8 @@ function submitApplication() {
         </p>
       </div>
       <div class="glass-card p-6 text-center">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-pink/20 flex items-center justify-center mb-4">
-          <svg class="w-7 h-7 text-ai-pink" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-red/20 flex items-center justify-center mb-4">
+          <svg class="w-7 h-7 text-ai-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>

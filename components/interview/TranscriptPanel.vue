@@ -48,7 +48,7 @@ watch(
           :class="[
             'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center',
             entry.speaker === 'ai'
-              ? 'bg-gradient-to-br from-ai-cyan to-ai-purple'
+              ? 'bg-gradient-to-t from-ai-orange to-ai-red'
               : 'bg-gradient-to-br from-primary to-accent',
           ]"
         >
@@ -84,7 +84,7 @@ watch(
         v-if="interviewStore.state === 'thinking'"
         class="flex gap-3 animate-fade-in"
       >
-        <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-ai-cyan to-ai-purple">
+        <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-t from-ai-orange to-ai-red">
           <Sparkles class="w-4 h-4 text-white animate-pulse" />
         </div>
         <div class="inline-flex items-center gap-1.5 px-4 py-3 rounded-2xl rounded-tl-sm bg-card border border-border">

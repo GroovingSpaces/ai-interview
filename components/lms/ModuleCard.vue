@@ -125,7 +125,7 @@ const formatDuration = (minutes: number): string => {
     <!-- Quiz badge -->
     <div
       v-if="module.quiz && module.quiz.completed"
-      class="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-lg bg-ai-purple/20 text-ai-purple text-xs font-medium"
+      class="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-lg bg-ai-orange/20 text-ai-orange text-xs font-medium"
     >
       <Sparkles class="w-3 h-3" />
       {{ module.quiz.score }}%

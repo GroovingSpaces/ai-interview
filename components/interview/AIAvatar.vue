@@ -32,10 +32,10 @@ const ringClasses = {
 const stateColors: Record<InterviewState, string> = {
   idle: 'from-muted to-muted',
   connecting: 'from-ai-amber to-yellow-400',
-  ready: 'from-ai-cyan to-ai-purple',
-  listening: 'from-ai-cyan via-ai-purple to-ai-pink',
-  thinking: 'from-ai-purple via-ai-pink to-ai-cyan',
-  speaking: 'from-ai-cyan to-emerald-400',
+  ready: 'from-ai-red to-ai-orange',
+  listening: 'from-ai-orange to-ai-red',
+  thinking: 'from-ai-orange to-ai-red',
+  speaking: 'from-ai-red to-emerald-400',
   paused: 'from-muted-foreground to-muted',
   ended: 'from-muted to-muted',
 }
@@ -88,8 +88,8 @@ const isAnimating = computed(() =>
             :class="[
               'transition-all duration-300',
               size === 'sm' ? 'w-5 h-5' : size === 'md' ? 'w-7 h-7' : size === 'lg' ? 'w-10 h-10' : 'w-14 h-14',
-              interviewStore.state === 'thinking' && 'animate-thinking text-ai-purple',
-              interviewStore.state === 'listening' && 'text-ai-cyan',
+              interviewStore.state === 'thinking' && 'animate-thinking text-ai-orange',
+              interviewStore.state === 'listening' && 'text-ai-red',
               interviewStore.state === 'speaking' && 'text-emerald-400',
               !isAnimating && 'text-muted-foreground',
             ]"
@@ -103,10 +103,10 @@ const isAnimating = computed(() =>
       :class="[
         'absolute -bottom-1 -right-1 rounded-full border-2 border-card transition-all duration-300',
         size === 'sm' ? 'w-3 h-3' : size === 'md' ? 'w-4 h-4' : 'w-5 h-5',
-        interviewStore.state === 'listening' && 'bg-ai-cyan animate-pulse',
-        interviewStore.state === 'thinking' && 'bg-ai-purple animate-pulse',
+        interviewStore.state === 'listening' && 'bg-ai-red animate-pulse',
+        interviewStore.state === 'thinking' && 'bg-ai-orange animate-pulse',
         interviewStore.state === 'speaking' && 'bg-emerald-400 animate-pulse',
-        interviewStore.state === 'ready' && 'bg-ai-cyan',
+        interviewStore.state === 'ready' && 'bg-ai-red',
         interviewStore.state === 'connecting' && 'bg-amber-400 animate-pulse',
         ['idle', 'paused', 'ended'].includes(interviewStore.state) && 'bg-muted-foreground',
       ]"

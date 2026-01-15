@@ -8,9 +8,9 @@ const interviewStore = useInterviewStore()
 
 const questionTypeColors: Record<string, string> = {
   behavioral: 'from-blue-500 to-blue-400',
-  technical: 'from-ai-cyan to-cyan-400',
-  situational: 'from-ai-purple to-purple-400',
-  'follow-up': 'from-ai-pink to-pink-400',
+  technical: 'from-ai-red to-red-400',
+  situational: 'from-ai-orange to-orange-400',
+  'follow-up': 'from-ai-orange to-ai-red',
 }
 </script>
 

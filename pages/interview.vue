@@ -116,13 +116,11 @@ onUnmounted(() => {
         <!-- AI Avatar -->
         <div class="flex justify-center">
           <div class="relative">
-            <div class="w-32 h-32 rounded-3xl bg-gradient-to-br from-ai-cyan via-ai-purple to-ai-pink p-[3px]">
-              <div class="w-full h-full rounded-3xl bg-card flex items-center justify-center">
-                <Sparkles class="w-12 h-12 text-primary" />
-              </div>
+            <div class="w-32 h-32 rounded-3xl bg-card border border-border flex items-center justify-center">
+              <img src="~/assets/telkomsel.png" alt="Telkomsel" class="w-20 h-20 object-contain" />
             </div>
             <div class="absolute -bottom-2 -right-2 px-3 py-1 rounded-full bg-card border border-border text-xs font-medium">
-              Nova AI
+              
             </div>
           </div>
         </div>
@@ -200,20 +198,20 @@ onUnmounted(() => {
         <!-- Features -->
         <div class="grid grid-cols-3 gap-4 pt-8">
           <div class="text-center space-y-2">
-            <div class="w-12 h-12 mx-auto rounded-xl bg-ai-cyan/10 flex items-center justify-center">
-              <MessageSquare class="w-6 h-6 text-ai-cyan" />
+            <div class="w-12 h-12 mx-auto rounded-xl bg-ai-red/10 flex items-center justify-center">
+              <MessageSquare class="w-6 h-6 text-ai-red" />
             </div>
             <p class="text-sm text-muted-foreground">Real-time Transcript</p>
           </div>
           <div class="text-center space-y-2">
-            <div class="w-12 h-12 mx-auto rounded-xl bg-ai-purple/10 flex items-center justify-center">
-              <BarChart3 class="w-6 h-6 text-ai-purple" />
+            <div class="w-12 h-12 mx-auto rounded-xl bg-ai-orange/10 flex items-center justify-center">
+              <BarChart3 class="w-6 h-6 text-ai-orange" />
             </div>
             <p class="text-sm text-muted-foreground">AI Analysis</p>
           </div>
           <div class="text-center space-y-2">
-            <div class="w-12 h-12 mx-auto rounded-xl bg-ai-pink/10 flex items-center justify-center">
-              <Sparkles class="w-6 h-6 text-ai-pink" />
+            <div class="w-12 h-12 mx-auto rounded-xl bg-ai-red/10 flex items-center justify-center">
+              <Sparkles class="w-6 h-6 text-ai-red" />
             </div>
             <p class="text-sm text-muted-foreground">Smart Questions</p>
           </div>

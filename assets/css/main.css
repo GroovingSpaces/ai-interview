@@ -13,8 +13,8 @@
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 187 100% 50%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 350 100% 45%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
@@ -22,21 +22,21 @@
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 187 100% 50%;
+    --ring: 350 100% 45%;
 
     --radius: 0.75rem;
   }
 
   .light {
-    --background: 0 0% 100%;
+    --background: 0 0% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -45,7 +45,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 187 100% 42%;
+    --primary: 350 100% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -54,7 +54,7 @@
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 262 83% 58%;
+    --accent: 24 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -62,7 +62,7 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 187 100% 42%;
+    --ring: 350 100% 45%;
   }
 }
 
@@ -85,8 +85,16 @@
     @apply bg-card/50 backdrop-blur-xl border border-white/5 rounded-2xl;
   }
 
+  .light .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-black/5 rounded-2xl shadow-sm;
+  }
+
   .glass-card-hover {
     @apply glass-card transition-all duration-300 hover:bg-card/70 hover:border-white/10 hover:shadow-lg hover:shadow-primary/5;
+  }
+
+  .light .glass-card-hover {
+    @apply transition-all duration-300 hover:bg-card/90 hover:border-black/10 hover:shadow-lg hover:shadow-primary/10;
   }
 
   .gradient-border {
@@ -115,7 +123,7 @@
   }
 
   .ai-text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-ai-cyan via-ai-purple to-ai-pink;
+    @apply bg-clip-text text-transparent bg-gradient-to-t from-ai-orange to-ai-red;
   }
 
   .score-pill {
@@ -160,10 +168,22 @@
     background-size: 40px 40px;
   }
 
+  .light .grid-bg {
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
   /* Radial gradient overlay */
   .radial-overlay {
-    background: radial-gradient(ellipse at top, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+    background: radial-gradient(ellipse at top, rgba(228, 0, 43, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(255, 95, 0, 0.06) 0%, transparent 50%);
+  }
+
+  .light .radial-overlay {
+    background: radial-gradient(ellipse at top, rgba(228, 0, 43, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(255, 95, 0, 0.03) 0%, transparent 50%);
   }
 
   /* Typing indicator */
@@ -181,7 +201,7 @@
 
   /* Wave bars for audio visualization */
   .wave-bar {
-    @apply w-1 bg-gradient-to-t from-ai-cyan to-ai-purple rounded-full animate-wave;
+    @apply w-1 bg-gradient-to-t from-ai-orange to-ai-red rounded-full animate-wave;
   }
 
   .wave-bar:nth-child(1) { animation-delay: 0s; }

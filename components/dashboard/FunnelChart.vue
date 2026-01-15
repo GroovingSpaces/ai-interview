@@ -34,7 +34,7 @@ const maxCount = computed(() => Math.max(...props.stages.map(s => s.count)))
             ]"
             :style="{ backgroundColor: `${stage.color}20`, color: stage.color }"
           >
-            {{ stage.count }}
+            {{ index + 1 }}
           </div>
           <div
             v-if="index < stages.length - 1"

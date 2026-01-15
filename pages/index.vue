@@ -14,7 +14,7 @@ import {
 } from 'lucide-vue-next'
 
 useHead({
-  title: 'Command Center',
+  title: 'Dashboard',
 })
 
 const candidatesStore = useCandidatesStore()
@@ -51,12 +51,12 @@ const stats = computed(() => [
 ])
 
 const funnelStages = computed(() => [
-  { name: 'Applied', count: candidatesStore.stageStats.applied, color: '#3B82F6' },
-  { name: 'Screening', count: candidatesStore.stageStats.screening, color: '#8B5CF6' },
-  { name: 'Interview', count: candidatesStore.stageStats.interview, color: '#00D4FF' },
-  { name: 'Assessment', count: candidatesStore.stageStats.assessment, color: '#F59E0B' },
-  { name: 'Offer', count: candidatesStore.stageStats.offer, color: '#10B981' },
-  { name: 'Hired', count: candidatesStore.stageStats.hired, color: '#22C55E' },
+  { sort: 1, name: 'Applied', count: candidatesStore.stageStats.applied, color: '#3B82F6' },
+  { sort: 2, name: 'Screening', count: candidatesStore.stageStats.screening, color: '#8B5CF6' },
+  { sort: 3, name: 'Interview', count: candidatesStore.stageStats.interview, color: '#00D4FF' },
+  { sort: 4, name: 'Assessment', count: candidatesStore.stageStats.assessment, color: '#F59E0B' },
+  { sort: 5, name: 'Offer', count: candidatesStore.stageStats.offer, color: '#10B981' },
+  { sort: 6, name: 'Hired', count: candidatesStore.stageStats.hired, color: '#22C55E' },
 ])
 
 const stageOptions = [

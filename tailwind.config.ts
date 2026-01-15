@@ -58,11 +58,11 @@ export default <Config>{
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Custom AI theme colors
+        // Custom AI theme colors (Telkomsel brand)
         ai: {
-          cyan: '#00D4FF',
-          purple: '#8B5CF6',
-          pink: '#EC4899',
+          red: '#E4002B',
+          orange: '#FF5F00',
+          yellow: '#FFD100',
           green: '#10B981',
           amber: '#F59E0B',
         },

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { Sparkles } from 'lucide-vue-next'
+import { Sun, Moon } from 'lucide-vue-next'
+import { useTheme } from '~/composables/useTheme'
+
+const { isDark, toggleTheme } = useTheme()
 </script>
 
 <template>
@@ -12,9 +15,7 @@ import { Sparkles } from 'lucide-vue-next'
       <div class="flex items-center justify-between h-full px-4 max-w-7xl mx-auto">
         <div class="flex items-center gap-3">
           <div class="relative">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-ai-cyan via-ai-purple to-ai-pink flex items-center justify-center">
-              <Sparkles class="w-5 h-5 text-white" />
-            </div>
+            <img src="~/assets/telkomsel.png" alt="Telkomsel" class="w-10 h-10 object-contain" />
           </div>
           <div>
             <span class="font-bold text-foreground text-lg">Telkomsel Careers</span>
@@ -34,9 +35,21 @@ import { Sparkles } from 'lucide-vue-next'
           </NuxtLink>
         </nav>
 
-        <UiButton variant="gradient" size="sm">
-          Sign In
-        </UiButton>
+        <div class="flex items-center gap-3">
+          <!-- Theme Toggle -->
+          <button
+            class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+            @click="toggleTheme"
+            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          >
+            <Sun v-if="isDark" class="w-5 h-5 text-muted-foreground" />
+            <Moon v-else class="w-5 h-5 text-muted-foreground" />
+          </button>
+
+          <UiButton variant="gradient" size="sm">
+            Sign In
+          </UiButton>
+        </div>
       </div>
     </header>
 

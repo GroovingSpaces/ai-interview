@@ -26,7 +26,7 @@ const trendColor = props.change > 0 ? 'text-score-excellent' : props.change < 0 
     :class="cn(
       'relative overflow-hidden rounded-2xl p-6 transition-all duration-300',
       variant === 'default' && 'bg-card border border-border hover:border-primary/30',
-      variant === 'gradient' && 'bg-gradient-to-br from-primary/20 via-accent/10 to-ai-pink/10 border border-primary/20',
+      variant === 'gradient' && 'bg-gradient-to-br from-primary/20 via-accent/10 to-ai-red/10 border border-primary/20',
       variant === 'glass' && 'glass-card hover:ai-glow',
       props.class
     )"

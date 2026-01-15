@@ -28,7 +28,7 @@ const sizeClasses = {
 
 const variantClasses = {
   default: 'bg-primary',
-  gradient: 'bg-gradient-to-r from-ai-cyan via-ai-purple to-ai-pink',
+  gradient: 'bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400',
   success: 'bg-score-excellent',
   warning: 'bg-score-average',
   danger: 'bg-score-low',

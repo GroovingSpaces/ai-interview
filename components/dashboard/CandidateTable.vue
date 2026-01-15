@@ -31,7 +31,7 @@ const globalFilter = ref('')
 const stageColors: Record<string, { bg: string; text: string; border: string }> = {
   applied: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
   screening: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/30' },
-  interview: { bg: 'bg-ai-cyan/10', text: 'text-ai-cyan', border: 'border-ai-cyan/30' },
+  interview: { bg: 'bg-ai-red/10', text: 'text-ai-red', border: 'border-ai-red/30' },
   assessment: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
   offer: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
   hired: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/30' },
@@ -60,7 +60,7 @@ const columns: ColumnDef<Candidate>[] = [
       
       return h('div', { class: 'flex items-center gap-3' }, [
         h('div', {
-          class: 'flex h-10 w-10 shrink-0 overflow-hidden rounded-full items-center justify-center bg-gradient-to-br from-ai-cyan to-ai-purple font-semibold text-white text-sm'
+          class: 'flex h-10 w-10 shrink-0 overflow-hidden rounded-full items-center justify-center bg-gradient-to-t from-ai-orange to-ai-red font-semibold text-white text-sm'
         }, initials),
         h('div', { class: 'min-w-0' }, [
           h('p', { class: 'font-medium text-foreground truncate' }, candidate.name),

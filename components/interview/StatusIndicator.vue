@@ -9,9 +9,9 @@ const interviewStore = useInterviewStore()
 const statusConfig: Record<InterviewState, { icon: any; label: string; color: string; bgColor: string }> = {
   idle: { icon: Pause, label: 'Ready to Start', color: 'text-muted-foreground', bgColor: 'bg-muted/50' },
   connecting: { icon: Wifi, label: 'Connecting...', color: 'text-amber-400', bgColor: 'bg-amber-400/10' },
-  ready: { icon: Play, label: 'Ready', color: 'text-ai-cyan', bgColor: 'bg-ai-cyan/10' },
-  listening: { icon: Mic, label: 'Listening', color: 'text-ai-cyan', bgColor: 'bg-ai-cyan/10' },
-  thinking: { icon: Brain, label: 'Analyzing Response', color: 'text-ai-purple', bgColor: 'bg-ai-purple/10' },
+  ready: { icon: Play, label: 'Ready', color: 'text-ai-red', bgColor: 'bg-ai-red/10' },
+  listening: { icon: Mic, label: 'Listening', color: 'text-ai-red', bgColor: 'bg-ai-red/10' },
+  thinking: { icon: Brain, label: 'Analyzing Response', color: 'text-ai-orange', bgColor: 'bg-ai-orange/10' },
   speaking: { icon: Volume2, label: 'Speaking', color: 'text-emerald-400', bgColor: 'bg-emerald-400/10' },
   paused: { icon: Pause, label: 'Paused', color: 'text-muted-foreground', bgColor: 'bg-muted/50' },
   ended: { icon: WifiOff, label: 'Interview Ended', color: 'text-muted-foreground', bgColor: 'bg-muted/50' },

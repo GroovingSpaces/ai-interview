@@ -36,7 +36,7 @@ const stats = [
     label: 'Total Progress',
     value: `${lmsStore.totalProgress}%`,
     icon: Target,
-    color: 'from-ai-cyan to-ai-purple',
+    color: 'from-ai-red to-ai-orange',
   },
   {
     label: 'Completed',
@@ -48,7 +48,7 @@ const stats = [
     label: 'Learning Time',
     value: `${Math.floor(lmsStore.totalLearningTime / 60)}h`,
     icon: Clock,
-    color: 'from-ai-purple to-ai-pink',
+    color: 'from-ai-orange to-ai-red',
   },
   {
     label: 'Badges Earned',
@@ -62,15 +62,15 @@ const stats = [
 <template>
   <div class="space-y-8">
     <!-- Hero section -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ai-cyan/20 via-ai-purple/10 to-ai-pink/20 p-8 lg:p-12 border border-primary/20">
-      <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-ai-cyan/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div class="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-ai-purple/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-t from-ai-orange/20 to-ai-red/20 p-8 lg:p-12 border border-primary/20">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-t from-ai-orange/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div class="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-ai-orange/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
       
       <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <div class="space-y-4">
           <div class="flex items-center gap-2">
-            <Sparkles class="w-5 h-5 text-ai-cyan" />
-            <span class="text-sm font-medium text-ai-cyan">AI-Powered Learning</span>
+            <Sparkles class="w-5 h-5 text-ai-red" />
+            <span class="text-sm font-medium text-ai-red">AI-Powered Learning</span>
           </div>
           <h1 class="text-3xl lg:text-4xl font-bold text-foreground">
             Your Learning Journey
@@ -188,8 +188,8 @@ const stats = [
     <div class="glass-card p-6 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-ai-purple/20">
-            <Sparkles class="w-5 h-5 text-ai-purple" />
+          <div class="p-2 rounded-lg bg-ai-orange/20">
+            <Sparkles class="w-5 h-5 text-ai-orange" />
           </div>
           <div>
             <h3 class="font-semibold text-foreground">AI-Generated Quiz</h3>

@@ -49,7 +49,7 @@ const initials = computed(() => {
     >
     <div
       v-else
-      class="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-ai-cyan to-ai-purple font-semibold text-white"
+      class="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-t from-ai-orange to-ai-red font-semibold text-white"
     >
       {{ initials }}
     </div>

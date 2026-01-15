@@ -28,8 +28,8 @@ const emit = defineEmits<{
 const typeColors = {
   'full-time': 'bg-score-excellent/20 text-score-excellent border-score-excellent/30',
   'part-time': 'bg-score-average/20 text-score-average border-score-average/30',
-  contract: 'bg-ai-purple/20 text-ai-purple border-ai-purple/30',
-  internship: 'bg-ai-cyan/20 text-ai-cyan border-ai-cyan/30',
+  contract: 'bg-ai-orange/20 text-ai-orange border-ai-orange/30',
+  internship: 'bg-ai-red/20 text-ai-red border-ai-red/30',
 }
 </script>
 
@@ -75,7 +75,7 @@ const typeColors = {
         <MapPin class="w-4 h-4" />
         {{ position.location }}
       </span>
-      <span v-if="position.remote" class="flex items-center gap-1 text-sm text-ai-cyan">
+      <span v-if="position.remote" class="flex items-center gap-1 text-sm text-ai-red">
         <Wifi class="w-4 h-4" />
         Remote OK
       </span>

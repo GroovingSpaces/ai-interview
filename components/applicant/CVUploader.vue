@@ -124,9 +124,9 @@ function resetUpload() {
       </div>
 
       <!-- AI badge -->
-      <div class="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-ai-purple/10 border border-ai-purple/30">
-        <Sparkles class="w-4 h-4 text-ai-purple" />
-        <span class="text-sm font-medium text-ai-purple">AI-Powered Analysis</span>
+      <div class="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-ai-orange/10 border border-ai-orange/30">
+        <Sparkles class="w-4 h-4 text-ai-orange" />
+        <span class="text-sm font-medium text-ai-orange">AI-Powered Analysis</span>
       </div>
     </div>
 
@@ -197,7 +197,7 @@ function resetUpload() {
         </button>
       </div>
 
-      <div class="flex items-center gap-2 text-sm text-ai-purple">
+      <div class="flex items-center gap-2 text-sm text-ai-orange">
         <Sparkles class="w-4 h-4" />
         <span>AI analysis complete - scroll down to see results</span>
       </div>

@@ -59,12 +59,12 @@ function resetQuiz() {
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2">
-        <div class="p-2 rounded-lg bg-ai-purple/20">
-          <Sparkles class="w-5 h-5 text-ai-purple" />
+        <div class="p-2 rounded-lg bg-ai-orange/20">
+          <Sparkles class="w-5 h-5 text-ai-orange" />
         </div>
         <div>
           <h3 class="font-semibold text-foreground">{{ quiz.title }}</h3>
-          <p v-if="quiz.aiGenerated" class="text-xs text-ai-purple">AI Generated</p>
+          <p v-if="quiz.aiGenerated" class="text-xs text-ai-orange">AI Generated</p>
         </div>
       </div>
       <span class="text-sm text-muted-foreground">

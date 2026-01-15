@@ -25,9 +25,9 @@ const offset = computed(() => circumference.value - (props.value / 100) * circum
       <!-- Gradient definition -->
       <defs>
         <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#00D4FF" />
-          <stop offset="50%" stop-color="#8B5CF6" />
-          <stop offset="100%" stop-color="#EC4899" />
+          <stop offset="0%" stop-color="#10B981" />
+          <stop offset="50%" stop-color="#22C55E" />
+          <stop offset="100%" stop-color="#34D399" />
         </linearGradient>
       </defs>
 

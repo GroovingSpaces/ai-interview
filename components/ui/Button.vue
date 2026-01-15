@@ -13,7 +13,7 @@ const buttonVariants = cva(
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:bg-accent/10 hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
-        gradient: 'bg-gradient-to-r from-ai-cyan via-ai-purple to-ai-pink text-white hover:opacity-90 shadow-lg',
+        gradient: 'bg-gradient-to-t from-ai-orange to-ai-red text-white hover:opacity-90 shadow-lg',
       },
       size: {
         default: 'h-10 px-4 py-2',

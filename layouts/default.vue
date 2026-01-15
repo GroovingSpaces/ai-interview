@@ -11,24 +11,27 @@ import {
   Search,
   Menu,
   X,
-  Sparkles,
   ChevronRight,
   LogOut,
   Moon,
   Sun,
+  ExternalLink,
 } from 'lucide-vue-next'
+import { useTheme } from '~/composables/useTheme'
 
 const route = useRoute()
 const isSidebarOpen = ref(true)
 const isMobileSidebarOpen = ref(false)
-const isDarkMode = ref(true)
+
+// Use theme composable for persistent theme switching
+const { isDark, toggleTheme } = useTheme()
 
 const navigation = [
-  { name: 'Command Center', href: '/', icon: LayoutDashboard },
-  { name: 'Candidates', href: '/candidates', icon: Users },
-  { name: 'AI Interview', href: '/interview', icon: Video },
-  { name: 'Learning Hub', href: '/lms', icon: GraduationCap },
-  { name: 'Applications', href: '/apply', icon: FileText },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, external: false },
+  { name: 'Candidates', href: '/candidates', icon: Users, external: false },
+  { name: 'AI Interview', href: '/interview', icon: Video, external: false },
+  { name: 'Learning Hub', href: '/lms', icon: GraduationCap, external: false },
+  { name: 'Applications', href: '/apply', icon: FileText, external: true },
 ]
 
 const currentPage = computed(() => {
@@ -42,11 +45,6 @@ function toggleSidebar() {
 
 function toggleMobileSidebar() {
   isMobileSidebarOpen.value = !isMobileSidebarOpen.value
-}
-
-function toggleTheme() {
-  isDarkMode.value = !isDarkMode.value
-  document.documentElement.classList.toggle('light', !isDarkMode.value)
 }
 </script>
 
@@ -83,10 +81,7 @@ function toggleTheme() {
       <!-- Logo -->
       <div class="flex items-center gap-3 px-6 h-16 border-b border-border">
         <div class="relative flex-shrink-0">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-ai-cyan via-ai-purple to-ai-pink flex items-center justify-center">
-            <Sparkles class="w-5 h-5 text-white" />
-          </div>
-          <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-score-excellent border-2 border-background" />
+          <img src="~/assets/telkomsel.png" alt="Telkomsel" class="w-10 h-10 object-contain" />
         </div>
         <Transition
           enter-active-class="transition-opacity duration-200"
@@ -105,40 +100,71 @@ function toggleTheme() {
 
       <!-- Navigation -->
       <nav class="p-4 space-y-2">
-        <NuxtLink
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.href"
-          :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
-            route.path === item.href
-              ? 'bg-primary/10 text-primary border border-primary/20'
-              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-          ]"
-          @click="isMobileSidebarOpen = false"
-        >
-          <component
-            :is="item.icon"
+        <template v-for="item in navigation" :key="item.name">
+          <!-- External link (open in new tab) -->
+          <a
+            v-if="item.external"
+            :href="item.href"
+            target="_blank"
             :class="[
-              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-              route.path === item.href ? 'text-primary' : 'group-hover:scale-110',
+              'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             ]"
-          />
-          <Transition
-            enter-active-class="transition-opacity duration-200"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-opacity duration-200"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
           >
-            <span v-if="isSidebarOpen" class="font-medium">{{ item.name }}</span>
-          </Transition>
-          <ChevronRight
-            v-if="isSidebarOpen && route.path === item.href"
-            class="w-4 h-4 ml-auto text-primary"
-          />
-        </NuxtLink>
+            <component
+              :is="item.icon"
+              class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+            />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="font-medium">{{ item.name }}</span>
+            </Transition>
+            <ExternalLink
+              v-if="isSidebarOpen"
+              class="w-3.5 h-3.5 ml-auto text-muted-foreground"
+            />
+          </a>
+          <!-- Internal link -->
+          <NuxtLink
+            v-else
+            :to="item.href"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+              route.path === item.href
+                ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="isMobileSidebarOpen = false"
+          >
+            <component
+              :is="item.icon"
+              :class="[
+                'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+                route.path === item.href ? 'text-foreground' : 'group-hover:scale-110',
+              ]"
+            />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="font-medium">{{ item.name }}</span>
+            </Transition>
+            <ChevronRight
+              v-if="isSidebarOpen && route.path === item.href"
+              class="w-4 h-4 ml-auto text-foreground"
+            />
+          </NuxtLink>
+        </template>
       </nav>
 
       <!-- Bottom section -->
@@ -150,9 +176,9 @@ function toggleTheme() {
           ]"
           @click="toggleTheme"
         >
-          <Sun v-if="isDarkMode" class="w-5 h-5 flex-shrink-0" />
+          <Sun v-if="isDark" class="w-5 h-5 flex-shrink-0" />
           <Moon v-else class="w-5 h-5 flex-shrink-0" />
-          <span v-if="isSidebarOpen" class="font-medium">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+          <span v-if="isSidebarOpen" class="font-medium">{{ isDark ? 'Light Mode' : 'Dark Mode' }}</span>
         </button>
         <button
           :class="[
@@ -217,12 +243,12 @@ function toggleTheme() {
             <!-- Notifications -->
             <button class="relative p-2 rounded-xl hover:bg-muted/50 transition-colors">
               <Bell class="w-5 h-5" />
-              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ai-pink" />
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ai-red" />
             </button>
 
             <!-- User avatar -->
             <button class="flex items-center gap-3 p-1.5 rounded-xl hover:bg-muted/50 transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-ai-cyan to-ai-purple flex items-center justify-center text-sm font-semibold text-white">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-t from-ai-orange to-ai-red flex items-center justify-center text-sm font-semibold text-white">
                 HR
               </div>
               <div class="hidden lg:block text-left">

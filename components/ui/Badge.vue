@@ -13,7 +13,7 @@ const badgeVariants = cva(
         outline: 'border border-border text-foreground',
         success: 'bg-score-excellent/20 text-score-excellent border border-score-excellent/30',
         warning: 'bg-score-average/20 text-score-average border border-score-average/30',
-        gradient: 'bg-gradient-to-r from-ai-cyan/20 via-ai-purple/20 to-ai-pink/20 text-white border border-white/10',
+        gradient: 'bg-gradient-to-t from-ai-orange/20 to-ai-red/20 text-white border border-white/10',
       },
     },
     defaultVariants: {
