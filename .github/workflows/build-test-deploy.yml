@@ -1,0 +1,50 @@
+name: 🚀 Test & Deploy AI Interview
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  docker-build-test:
+    name: 🐳 Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 5  # Fetch some history to get commit information
+
+      - name: 🔨 Build Docker Image
+        run: |
+          echo "🧪 Building Docker image for test..."
+          docker build -t app-test .
+          
+  deploy-prod:
+    name: 🚀 Deploy AI Interview (Prod)
+    runs-on: ubuntu-latest
+    environment:
+      name: prod-wms-general
+      url: hhttps://wms-dev.logspace.id/
+    needs: docker-build-test
+
+    steps:
+      - name: 🚀 Deploy AI Interview via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USERNAME_PROD }}
+          key: ${{ secrets.SSH_KEY_PROD }}
+          script: |
+            echo "🚀 Deploying AI Interview API..."
+            cd ${{ secrets.WORKDIR_PROD }}
+            git pull origin main &&
+
+            echo "🔧 Rebuilding Docker containers..."
+            docker compose build &&
+
+            echo "📦 Starting services..."
+            docker compose up -d &&
+
+            echo "✅ AI Interview deployed!"
+            sleep 5 && docker ps -a
