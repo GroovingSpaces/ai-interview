@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import {
   LayoutDashboard,
   Users,
-  Video,
+  MonitorPlay,
   GraduationCap,
   FileText,
   Settings,
@@ -16,7 +16,7 @@ import {
   Sun,
   ExternalLink,
   Briefcase,
-  Shield,
+  UserCog,
 } from 'lucide-vue-next'
 import { useTheme } from '~/composables/useTheme'
 import { useAuthStore } from '~/stores/auth'
@@ -41,7 +41,7 @@ const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, external: false },
   { name: 'Candidates', href: '/candidates', icon: Users, external: false },
   { name: 'Positions', href: '/positions', icon: Briefcase, external: false },
-  { name: 'AI Interview', href: '/interview', icon: Video, external: false },
+  { name: 'AI Interview', href: '/interview', icon: MonitorPlay, external: false },
   { name: 'Learning Hub', href: '/lms', icon: GraduationCap, external: false },
   { name: 'Applications', href: '/apply', icon: FileText, external: true },
 ]
@@ -51,7 +51,7 @@ const navigation = computed(() => {
   const items = [...baseNavigation]
   if (authStore.isStaff) {
     // Insert Users menu after Positions
-    items.splice(3, 0, { name: 'Users', href: '/users', icon: Shield, external: false })
+    items.splice(3, 0, { name: 'Users', href: '/users', icon: UserCog, external: false })
   }
   return items
 })
