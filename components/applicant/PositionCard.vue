@@ -9,6 +9,7 @@ import {
   Building2,
   ChevronRight,
   Sparkles,
+  ExternalLink,
 } from 'lucide-vue-next'
 
 interface Props {
@@ -108,12 +109,14 @@ const typeColors = {
 
     <!-- Footer -->
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3 text-sm text-muted-foreground">
-        <span class="flex items-center gap-1">
-          <Building2 class="w-4 h-4" />
-          {{ position.department }}
-        </span>
-      </div>
+      <NuxtLink
+        :to="`/apply/positions/${position.id}`"
+        class="flex items-center gap-1.5 text-sm text-primary hover:underline"
+        @click.stop
+      >
+        <ExternalLink class="w-4 h-4" />
+        View Details
+      </NuxtLink>
       <ChevronRight class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
     </div>
   </div>

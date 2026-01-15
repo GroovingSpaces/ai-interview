@@ -128,14 +128,15 @@ const typeColors: Record<string, string> = {
 
     <!-- Positions Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div
+      <NuxtLink
         v-for="position in filteredPositions"
         :key="position.id"
-        class="glass-card-hover p-6 space-y-4"
+        :to="`/apply/positions/${position.id}`"
+        class="glass-card-hover p-6 space-y-4 block cursor-pointer"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="space-y-1">
-            <h3 class="text-xl font-semibold text-foreground">{{ position.title }}</h3>
+            <h3 class="text-xl font-semibold text-foreground group-hover:text-ai-red transition-colors">{{ position.title }}</h3>
             <div class="flex items-center gap-2 text-muted-foreground">
               <Building2 class="w-4 h-4" />
               <span class="text-sm">{{ position.department }}</span>
@@ -170,15 +171,14 @@ const typeColors: Record<string, string> = {
           <div class="text-sm text-muted-foreground">
             {{ position.requirements.length }} requirements
           </div>
-          <NuxtLink
-            :to="`/apply?position=${position.id}`"
+          <span
             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium text-sm"
           >
-            Apply Now
+            View Details
             <ChevronRight class="w-4 h-4" />
-          </NuxtLink>
+          </span>
         </div>
-      </div>
+      </NuxtLink>
     </div>
 
     <!-- Empty State -->
