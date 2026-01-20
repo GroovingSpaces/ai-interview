@@ -214,17 +214,22 @@ function handleLogout() {
 
       <!-- Bottom section -->
       <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border space-y-1">
-        <button
-          :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200',
-            'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-          ]"
-          @click="toggleTheme"
-        >
-          <Sun v-if="isDark" class="w-5 h-5 flex-shrink-0" />
-          <Moon v-else class="w-5 h-5 flex-shrink-0" />
-          <span v-if="isSidebarOpen" class="font-medium">{{ isDark ? 'Light Mode' : 'Dark Mode' }}</span>
-        </button>
+        <ClientOnly>
+          <button
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="toggleTheme"
+          >
+            <Sun v-if="isDark" class="w-5 h-5 flex-shrink-0" />
+            <Moon v-else class="w-5 h-5 flex-shrink-0" />
+            <span v-if="isSidebarOpen" class="font-medium">{{ isDark ? 'Light Mode' : 'Dark Mode' }}</span>
+          </button>
+          <template #fallback>
+            <div class="h-11 rounded-xl bg-muted/30 animate-pulse" />
+          </template>
+        </ClientOnly>
         <button
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200',

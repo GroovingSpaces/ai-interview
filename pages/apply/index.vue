@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { useApplicationStore } from '~/stores/application'
+import { useAuthStore } from '~/stores/auth'
 import {
   Sparkles,
   Briefcase,
-  CheckCircle,
-  ArrowRight,
   Search,
-  Filter,
+  FileCheck,
+  ChevronRight,
+  Building2,
+  MapPin,
+  Wifi,
+  ArrowRight,
 } from 'lucide-vue-next'
 
 definePageMeta({
@@ -15,58 +18,54 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Apply',
+  title: 'Careers - Telkomsel',
 })
 
 const applicationStore = useApplicationStore()
-const searchQuery = ref('')
-const typeFilter = ref('all')
+const authStore = useAuthStore()
 
-const filteredPositions = computed(() => {
-  return applicationStore.availablePositions.filter(pos => {
-    const matchesSearch = 
-      pos.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      pos.department.toLowerCase().includes(searchQuery.value.toLowerCase())
-    
-    const matchesType = typeFilter.value === 'all' || pos.type === typeFilter.value
-    
-    return matchesSearch && matchesType
-  }).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-})
-
-const typeOptions = [
-  { value: 'all', label: 'All Types' },
-  { value: 'full-time', label: 'Full Time' },
-  { value: 'part-time', label: 'Part Time' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'internship', label: 'Internship' },
-]
+// Get featured positions (first 4)
+const featuredPositions = computed(() => applicationStore.availablePositions.slice(0, 4))
 
 const steps = [
-  { id: 1, title: 'Upload CV', description: 'Submit your resume' },
-  { id: 2, title: 'AI Analysis', description: 'Get instant insights' },
-  { id: 3, title: 'Choose Position', description: 'Find your fit' },
-  { id: 4, title: 'Apply', description: 'Submit application' },
+  { 
+    id: 1, 
+    title: 'Browse Positions', 
+    description: 'Explore our open positions and find the role that matches your skills',
+    icon: Search,
+  },
+  { 
+    id: 2, 
+    title: 'View Details', 
+    description: 'Learn about the job requirements, responsibilities, and benefits',
+    icon: FileCheck,
+  },
+  { 
+    id: 3, 
+    title: 'Apply', 
+    description: 'Upload your CV and let our AI analyze your profile',
+    icon: Sparkles,
+  },
+  { 
+    id: 4, 
+    title: 'Track Status', 
+    description: 'Monitor your application progress in real-time',
+    icon: Briefcase,
+  },
 ]
 
-const currentStep = computed(() => {
-  if (applicationStore.status === 'idle') return 1
-  if (applicationStore.isProcessing) return 2
-  if (applicationStore.status === 'complete' && !applicationStore.selectedPosition) return 3
-  if (applicationStore.selectedPosition) return 4
-  return 1
-})
-
-function submitApplication() {
-  alert('Application submitted! (Demo)')
-  applicationStore.reset()
+const typeColors: Record<string, string> = {
+  'full-time': 'bg-score-excellent/20 text-score-excellent border-score-excellent/30',
+  'part-time': 'bg-score-average/20 text-score-average border-score-average/30',
+  'contract': 'bg-ai-orange/20 text-ai-orange border-ai-orange/30',
+  'internship': 'bg-ai-red/20 text-ai-red border-ai-red/30',
 }
 </script>
 
 <template>
-  <div class="space-y-12">
+  <div class="space-y-16">
     <!-- Hero Section -->
-    <div class="text-center space-y-6 max-w-3xl mx-auto">
+    <div class="text-center space-y-6 max-w-3xl mx-auto pt-8">
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
         <Sparkles class="w-4 h-4" />
         AI-Powered Recruitment
@@ -75,176 +74,183 @@ function submitApplication() {
         Find Your Perfect Role at <span class="ai-text-gradient">Telkomsel</span>
       </h1>
       <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
-        Upload your CV and let our AI match you with the best opportunities. Get instant feedback and insights about your profile.
+        Join Indonesia's leading digital telco company. We're looking for talented individuals who are passionate about technology and innovation.
       </p>
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <NuxtLink
+          to="/apply/positions"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-t from-ai-orange to-ai-red text-white font-semibold hover:opacity-90 transition-opacity"
+        >
+          <Search class="w-5 h-5" />
+          Browse Open Positions
+        </NuxtLink>
+        <NuxtLink
+          v-if="authStore.isAuthenticated"
+          to="/apply/status"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border hover:bg-muted/50 transition-colors font-medium text-foreground"
+        >
+          <FileCheck class="w-5 h-5" />
+          Check My Applications
+        </NuxtLink>
+      </div>
     </div>
 
-    <!-- Progress Steps -->
-    <div class="flex items-center justify-center gap-4 lg:gap-8 overflow-x-auto pb-4">
-      <template v-for="(step, index) in steps" :key="step.id">
-        <div class="flex items-center gap-3 flex-shrink-0">
-          <div
-            :class="[
-              'w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300',
-              currentStep >= step.id
-                ? 'bg-gradient-to-t from-ai-orange to-ai-red text-white'
-                : 'bg-muted text-muted-foreground',
-            ]"
-          >
-            <CheckCircle v-if="currentStep > step.id" class="w-5 h-5" />
-            <span v-else>{{ step.id }}</span>
+    <!-- How it Works -->
+    <div class="space-y-8">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-foreground mb-2">How to Apply</h2>
+        <p class="text-muted-foreground">Simple steps to start your career journey with us</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
+          v-for="(step, index) in steps"
+          :key="step.id"
+          class="relative glass-card p-6 text-center"
+        >
+          <!-- Step number -->
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-t from-ai-orange to-ai-red text-white text-sm font-bold flex items-center justify-center">
+            {{ step.id }}
           </div>
-          <div class="hidden sm:block">
-            <p
+          
+          <!-- Arrow between steps (desktop) -->
+          <div
+            v-if="index < steps.length - 1"
+            class="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10"
+          >
+            <ChevronRight class="w-6 h-6 text-muted-foreground" />
+          </div>
+          
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4 mt-2">
+            <component :is="step.icon" class="w-7 h-7 text-primary" />
+          </div>
+          <h3 class="font-semibold text-foreground mb-2">{{ step.title }}</h3>
+          <p class="text-sm text-muted-foreground">{{ step.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Featured Positions -->
+    <div class="space-y-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-foreground mb-2">Featured Positions</h2>
+          <p class="text-muted-foreground">Latest opportunities waiting for you</p>
+        </div>
+        <NuxtLink
+          to="/apply/positions"
+          class="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+        >
+          View All
+          <ArrowRight class="w-4 h-4" />
+        </NuxtLink>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <NuxtLink
+          v-for="position in featuredPositions"
+          :key="position.id"
+          :to="`/apply/positions/${position.id}`"
+          class="glass-card-hover p-6 space-y-4 block"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-1">
+              <h3 class="text-lg font-semibold text-foreground">{{ position.title }}</h3>
+              <div class="flex items-center gap-2 text-muted-foreground">
+                <Building2 class="w-4 h-4" />
+                <span class="text-sm">{{ position.department }}</span>
+              </div>
+            </div>
+            <span
               :class="[
-                'font-medium',
-                currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground',
+                'px-3 py-1 rounded-full text-xs font-medium border capitalize',
+                typeColors[position.type] || 'bg-muted text-muted-foreground',
               ]"
             >
-              {{ step.title }}
-            </p>
-            <p class="text-xs text-muted-foreground">{{ step.description }}</p>
+              {{ position.type.replace('-', ' ') }}
+            </span>
           </div>
-        </div>
-        <ArrowRight
-          v-if="index < steps.length - 1"
-          :class="[
-            'w-5 h-5 flex-shrink-0',
-            currentStep > step.id ? 'text-primary' : 'text-muted-foreground',
-          ]"
-        />
-      </template>
-    </div>
 
-    <!-- Main Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Left Column: Upload & Analysis -->
-      <div class="space-y-6">
-        <ApplicantCVUploader />
+          <p class="text-muted-foreground text-sm line-clamp-2">
+            {{ position.description }}
+          </p>
 
-        <!-- Parsed Resume View -->
-        <ApplicantParsedResumeView v-if="applicationStore.status === 'complete'" />
-      </div>
-
-      <!-- Right Column: Positions -->
-      <div class="space-y-6">
-        <div class="glass-card p-6">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="p-2 rounded-lg bg-primary/20">
-                <Briefcase class="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h2 class="text-lg font-semibold text-foreground">Open Positions</h2>
-                <p class="text-sm text-muted-foreground">
-                  {{ applicationStore.availablePositions.length }} opportunities
-                </p>
-              </div>
+          <div class="flex flex-wrap gap-3">
+            <div class="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MapPin class="w-4 h-4" />
+              {{ position.location }}
+            </div>
+            <div v-if="position.remote" class="flex items-center gap-1.5 text-sm text-score-excellent">
+              <Wifi class="w-4 h-4" />
+              Remote Available
             </div>
           </div>
 
-          <!-- Filters -->
-          <div class="flex flex-col sm:flex-row gap-3 mb-6">
-            <div class="flex-1 relative">
-              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <UiInput
-                v-model="searchQuery"
-                placeholder="Search positions..."
-                class="pl-10"
-              />
-            </div>
-            <UiSelect
-              v-model="typeFilter"
-              :options="typeOptions"
-              class="w-full sm:w-40"
-            />
+          <div class="pt-4 border-t border-border flex items-center justify-end">
+            <span class="inline-flex items-center gap-2 text-primary font-medium text-sm">
+              View Details
+              <ChevronRight class="w-4 h-4" />
+            </span>
           </div>
-
-          <!-- Positions List -->
-          <div class="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
-            <ApplicantPositionCard
-              v-for="position in filteredPositions"
-              :key="position.id"
-              :position="position"
-              :selected="applicationStore.selectedPosition?.id === position.id"
-              @select="applicationStore.selectPosition"
-            />
-
-            <div
-              v-if="filteredPositions.length === 0"
-              class="text-center py-12"
-            >
-              <p class="text-muted-foreground">No positions found matching your criteria</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Apply Button -->
-        <Transition
-          enter-active-class="transition duration-300 ease-out"
-          enter-from-class="opacity-0 translate-y-4"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transition duration-200 ease-in"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 translate-y-4"
-        >
-          <div
-            v-if="applicationStore.selectedPosition && applicationStore.status === 'complete'"
-            class="glass-card p-6"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-semibold text-foreground">
-                  Apply for {{ applicationStore.selectedPosition.title }}
-                </h3>
-                <p class="text-sm text-muted-foreground">
-                  Your profile is ready to submit
-                </p>
-              </div>
-              <UiButton variant="gradient" size="lg" @click="submitApplication">
-                <Sparkles class="w-5 h-5" />
-                Submit Application
-              </UiButton>
-            </div>
-          </div>
-        </Transition>
+        </NuxtLink>
       </div>
     </div>
 
-    <!-- Features Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
-      <div class="glass-card p-6 text-center">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-red/20 flex items-center justify-center mb-4">
-          <Sparkles class="w-7 h-7 text-ai-red" />
-        </div>
-        <h3 class="font-semibold text-foreground mb-2">AI-Powered Matching</h3>
-        <p class="text-sm text-muted-foreground">
-          Our AI analyzes your skills and experience to find the best role matches
-        </p>
+    <!-- Why Join Us -->
+    <div class="space-y-8">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-foreground mb-2">Why Join Telkomsel?</h2>
+        <p class="text-muted-foreground">Be part of Indonesia's digital transformation</p>
       </div>
-      <div class="glass-card p-6 text-center">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-orange/20 flex items-center justify-center mb-4">
-          <svg class="w-7 h-7 text-ai-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card p-6 text-center">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-red/20 flex items-center justify-center mb-4">
+            <Sparkles class="w-7 h-7 text-ai-red" />
+          </div>
+          <h3 class="font-semibold text-foreground mb-2">Innovation First</h3>
+          <p class="text-sm text-muted-foreground">
+            Work with cutting-edge technology and be at the forefront of digital innovation
+          </p>
         </div>
-        <h3 class="font-semibold text-foreground mb-2">Instant Feedback</h3>
-        <p class="text-sm text-muted-foreground">
-          Get immediate insights about your profile strengths and areas to improve
-        </p>
-      </div>
-      <div class="glass-card p-6 text-center">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-red/20 flex items-center justify-center mb-4">
-          <svg class="w-7 h-7 text-ai-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+        <div class="glass-card p-6 text-center">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-ai-orange/20 flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-ai-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground mb-2">Great Team</h3>
+          <p class="text-sm text-muted-foreground">
+            Collaborate with talented professionals who are passionate about making an impact
+          </p>
         </div>
-        <h3 class="font-semibold text-foreground mb-2">Fast Track Process</h3>
-        <p class="text-sm text-muted-foreground">
-          Streamlined application process with AI-assisted screening
-        </p>
+        <div class="glass-card p-6 text-center">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-score-excellent/20 flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-score-excellent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground mb-2">Career Growth</h3>
+          <p class="text-sm text-muted-foreground">
+            Continuous learning opportunities and clear career progression paths
+          </p>
+        </div>
       </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="glass-card p-8 lg:p-12 text-center bg-gradient-to-br from-ai-red/5 to-ai-orange/5 border-ai-red/20">
+      <h2 class="text-2xl lg:text-3xl font-bold text-foreground mb-4">Ready to Start Your Journey?</h2>
+      <p class="text-muted-foreground mb-6 max-w-xl mx-auto">
+        Explore our open positions and find the perfect role for you. Your next career adventure awaits!
+      </p>
+      <NuxtLink
+        to="/apply/positions"
+        class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-t from-ai-orange to-ai-red text-white font-semibold hover:opacity-90 transition-opacity text-lg"
+      >
+        <Briefcase class="w-5 h-5" />
+        Explore Positions
+      </NuxtLink>
     </div>
   </div>
 </template>
-

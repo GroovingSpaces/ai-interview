@@ -45,7 +45,7 @@ function goBack() {
 
 function applyNow() {
   if (position.value) {
-    router.push(`/apply?position=${position.value.id}`)
+    router.push(`/apply/positions/${position.value.id}/apply`)
   }
 }
 

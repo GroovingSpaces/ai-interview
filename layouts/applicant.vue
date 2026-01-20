@@ -185,47 +185,57 @@ const isRegisterFormValid = computed(() => {
 
         <div class="flex items-center gap-3">
           <!-- Theme Toggle -->
-          <button
-            class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-            @click="toggleTheme"
-            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-          >
-            <Sun v-if="isDark" class="w-5 h-5 text-muted-foreground" />
-            <Moon v-else class="w-5 h-5 text-muted-foreground" />
-          </button>
+          <ClientOnly>
+            <button
+              class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              @click="toggleTheme"
+              :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            >
+              <Sun v-if="isDark" class="w-5 h-5 text-muted-foreground" />
+              <Moon v-else class="w-5 h-5 text-muted-foreground" />
+            </button>
+            <template #fallback>
+              <div class="w-9 h-9 rounded-lg bg-muted/50 animate-pulse" />
+            </template>
+          </ClientOnly>
 
           <!-- User Info / Login -->
-          <template v-if="authStore.isAuthenticated">
-            <div class="flex items-center gap-3">
-              <div class="hidden sm:flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-t from-ai-orange to-ai-red flex items-center justify-center text-sm font-semibold text-white">
-                  {{ userInitials }}
+          <ClientOnly>
+            <template v-if="authStore.isAuthenticated">
+              <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-t from-ai-orange to-ai-red flex items-center justify-center text-sm font-semibold text-white">
+                    {{ userInitials }}
+                  </div>
+                  <div class="text-left">
+                    <p class="text-sm font-medium">{{ authStore.user?.name }}</p>
+                    <p class="text-xs text-muted-foreground capitalize">{{ authStore.user?.role }}</p>
+                  </div>
                 </div>
-                <div class="text-left">
-                  <p class="text-sm font-medium">{{ authStore.user?.name }}</p>
-                  <p class="text-xs text-muted-foreground capitalize">{{ authStore.user?.role }}</p>
-                </div>
+                <button
+                  class="p-2 rounded-lg hover:bg-score-low/10 transition-colors text-score-low"
+                  @click="handleLogout"
+                  title="Logout"
+                >
+                  <LogOut class="w-5 h-5" />
+                </button>
               </div>
+            </template>
+            <template v-else>
               <button
-                class="p-2 rounded-lg hover:bg-score-low/10 transition-colors text-score-low"
-                @click="handleLogout"
-                title="Logout"
+                class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                @click="openLoginModal"
               >
-                <LogOut class="w-5 h-5" />
+                Sign In
               </button>
-            </div>
-          </template>
-          <template v-else>
-            <button
-              class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              @click="openLoginModal"
-            >
-              Sign In
-            </button>
-            <UiButton variant="gradient" size="sm" @click="openRegisterModal">
-              Register
-            </UiButton>
-          </template>
+              <UiButton variant="gradient" size="sm" @click="openRegisterModal">
+                Register
+              </UiButton>
+            </template>
+            <template #fallback>
+              <div class="w-20 h-8 rounded-lg bg-muted/50 animate-pulse" />
+            </template>
+          </ClientOnly>
         </div>
       </div>
     </header>

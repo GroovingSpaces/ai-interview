@@ -3,28 +3,18 @@ import type { JobPosition } from '~/stores/application'
 import { cn, getScoreColor } from '~/lib/utils'
 import {
   MapPin,
-  Briefcase,
-  Clock,
   Wifi,
   Building2,
   ChevronRight,
   Sparkles,
-  ExternalLink,
 } from 'lucide-vue-next'
 
 interface Props {
   position: JobPosition
-  selected?: boolean
   class?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  selected: false,
-})
-
-const emit = defineEmits<{
-  select: [position: JobPosition]
-}>()
+const props = defineProps<Props>()
 
 const typeColors = {
   'full-time': 'bg-score-excellent/20 text-score-excellent border-score-excellent/30',
@@ -35,15 +25,13 @@ const typeColors = {
 </script>
 
 <template>
-  <div
+  <NuxtLink
+    :to="`/apply/positions/${position.id}`"
     :class="cn(
-      'group relative rounded-2xl p-6 transition-all duration-300 cursor-pointer border',
-      selected
-        ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/20'
-        : 'bg-card border-border hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5',
+      'group relative block rounded-2xl p-6 transition-all duration-300 cursor-pointer border',
+      'bg-card border-border hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5',
       props.class
     )"
-    @click="emit('select', position)"
   >
     <!-- Match score badge -->
     <div
@@ -64,19 +52,22 @@ const typeColors = {
       <h3 class="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
         {{ position.title }}
       </h3>
-      <p class="text-sm text-muted-foreground">{{ position.department }}</p>
+      <div class="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+        <Building2 class="w-4 h-4" />
+        {{ position.department }}
+      </div>
     </div>
 
     <!-- Meta info -->
     <div class="flex flex-wrap gap-3 mb-4">
       <span :class="cn('px-2 py-1 rounded text-xs font-medium capitalize border', typeColors[position.type])">
-        {{ position.type }}
+        {{ position.type.replace('-', ' ') }}
       </span>
       <span class="flex items-center gap-1 text-sm text-muted-foreground">
         <MapPin class="w-4 h-4" />
         {{ position.location }}
       </span>
-      <span v-if="position.remote" class="flex items-center gap-1 text-sm text-ai-red">
+      <span v-if="position.remote" class="flex items-center gap-1 text-sm text-score-excellent">
         <Wifi class="w-4 h-4" />
         Remote OK
       </span>
@@ -108,17 +99,11 @@ const typeColors = {
     </div>
 
     <!-- Footer -->
-    <div class="flex items-center justify-between">
-      <NuxtLink
-        :to="`/apply/positions/${position.id}`"
-        class="flex items-center gap-1.5 text-sm text-primary hover:underline"
-        @click.stop
-      >
-        <ExternalLink class="w-4 h-4" />
+    <div class="flex items-center justify-end pt-4 border-t border-border">
+      <span class="flex items-center gap-1.5 text-sm text-primary font-medium">
         View Details
-      </NuxtLink>
-      <ChevronRight class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+        <ChevronRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+      </span>
     </div>
-  </div>
+  </NuxtLink>
 </template>
-
