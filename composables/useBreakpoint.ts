@@ -10,8 +10,11 @@ const breakpoints = {
   '2xl': 1536,
 }
 
+// Use fixed initial value so SSR and client first paint match (avoid hydration mismatch)
+const INITIAL_WIDTH = 1024
+
 export function useBreakpoint() {
-  const width = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+  const width = ref(INITIAL_WIDTH)
   const current = ref<Breakpoint>('lg')
 
   function updateWidth() {

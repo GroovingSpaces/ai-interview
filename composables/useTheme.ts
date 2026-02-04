@@ -33,6 +33,7 @@ export function useTheme() {
   }
 
   onMounted(() => {
+    // Only read from localStorage and update DOM after mount (avoids hydration mismatch)
     const savedTheme = localStorage.getItem('theme') as Theme | null
     if (savedTheme) {
       setTheme(savedTheme)

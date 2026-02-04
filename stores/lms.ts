@@ -211,6 +211,21 @@ export const useLmsStore = defineStore('lms', () => {
   const currentQuiz = ref<Quiz | null>(null)
   const activeQuizQuestion = ref(0)
 
+  function getModuleById(id: string): LearningModule | undefined {
+    return modules.value.find(m => m.id === id)
+  }
+
+  /** Learning methods (lesson types) summary per module: { video: n, reading: n, ... } */
+  function getLearningMethodsByModule(moduleId: string): Record<Lesson['type'], number> {
+    const mod = getModuleById(moduleId)
+    if (!mod) return { video: 0, reading: 0, interactive: 0, exercise: 0 }
+    const counts: Record<Lesson['type'], number> = { video: 0, reading: 0, interactive: 0, exercise: 0 }
+    for (const lesson of mod.lessons) {
+      counts[lesson.type] = (counts[lesson.type] ?? 0) + 1
+    }
+    return counts
+  }
+
   const totalProgress = computed(() => {
     const total = modules.value.reduce((sum, m) => sum + m.progress, 0)
     return Math.round(total / modules.value.length)
@@ -341,6 +356,8 @@ export const useLmsStore = defineStore('lms', () => {
     completedModules,
     totalLearningTime,
     earnedBadges,
+    getModuleById,
+    getLearningMethodsByModule,
     startModule,
     completeLesson,
     startQuiz,

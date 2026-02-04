@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useEmployeesStore } from '~/stores/employees'
 import { useCompanyStore } from '~/stores/company'
+import { useCandidatesStore } from '~/stores/candidates'
 import type {
   Employee,
   CreateEmployeePayload,
@@ -46,6 +47,7 @@ useHead({ title: () => title.value })
 const route = useRoute()
 const employeesStore = useEmployeesStore()
 const companyStore = useCompanyStore()
+const candidatesStore = useCandidatesStore()
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -404,6 +406,46 @@ onMounted(() => {
   if (editId) {
     const emp = employeesStore.getEmployeeById(editId)
     if (emp) openEditModal(emp)
+    return
+  }
+  const addFromCandidateId = route.query.addFromCandidate as string | undefined
+  if (addFromCandidateId) {
+    const candidate = candidatesStore.candidates.find((c) => c.id === addFromCandidateId)
+    if (candidate) {
+      resetForm()
+      const dept = companyStore.departments.find((d) => d.name === candidate.department)
+      const today = new Date().toISOString().slice(0, 10)
+      formData.value = {
+        name: candidate.name,
+        email: candidate.email,
+        employeeId: `EMP-${candidate.id}`,
+        department: candidate.department,
+        departmentId: dept?.id ?? '',
+        divisionId: '',
+        positionLevelId: '',
+        locationId: '',
+        organizationId: '',
+        position: candidate.position,
+        joinDate: today,
+        phone: candidate.phone || '',
+        dateOfBirth: '',
+        gender: '',
+        religion: '',
+        marriageStatus: '',
+        address: '',
+        provinsi: '',
+        kota: '',
+        kecamatan: '',
+        kelurahan: '',
+        postalCode: '',
+        directSupervisorId: '',
+        employeeStatus: '',
+        workHistory: [],
+        education: [],
+        certifications: [],
+      }
+      showCreateModal.value = true
+    }
   }
 })
 

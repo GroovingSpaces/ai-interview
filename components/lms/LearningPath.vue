@@ -51,9 +51,11 @@ const formatDuration = (minutes: number): string => {
     <!-- Modules roadmap -->
     <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
       <template v-for="(module, index) in pathModules" :key="module?.id">
-        <div
+        <NuxtLink
+          v-if="module?.id"
+          :to="`/lms/${module.id}`"
           :class="cn(
-            'flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg transition-all',
+            'flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:opacity-90',
             module?.completed
               ? 'bg-score-excellent/10 border border-score-excellent/30'
               : module?.progress && module.progress > 0
@@ -71,7 +73,7 @@ const formatDuration = (minutes: number): string => {
             {{ module?.title }}
           </span>
           <CheckCircle v-if="module?.completed" class="w-4 h-4 text-score-excellent" />
-        </div>
+        </NuxtLink>
         <ArrowRight
           v-if="index < pathModules.length - 1"
           class="w-4 h-4 text-muted-foreground flex-shrink-0"

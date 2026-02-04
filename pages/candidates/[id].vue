@@ -23,6 +23,7 @@ import {
   GraduationCap,
   Award,
   ExternalLink,
+  UserPlus,
 } from 'lucide-vue-next'
 
 definePageMeta({
@@ -84,6 +85,14 @@ function openWhatsApp() {
   // Open WhatsApp Web with the phone number
   const message = encodeURIComponent(`Hi ${candidate.value.name}, this is regarding your application at Telkomsel.`)
   window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
+}
+
+function addToEmployee() {
+  if (!candidate.value) return
+  navigateTo({
+    path: '/employees/database',
+    query: { addFromCandidate: candidate.value.id },
+  })
 }
 </script>
 
@@ -399,6 +408,16 @@ function openWhatsApp() {
               >
                 {{ stageActions[candidate.stage] }}
                 <ChevronRight class="w-4 h-4" />
+              </UiButton>
+
+              <UiButton
+                v-if="candidate.stage === 'hired'"
+                variant="outline"
+                class="w-full justify-between border-score-excellent/50 text-score-excellent hover:bg-score-excellent/10"
+                @click="addToEmployee"
+              >
+                Add to Employee
+                <UserPlus class="w-4 h-4" />
               </UiButton>
               
               <div class="grid grid-cols-2 gap-2">

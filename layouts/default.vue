@@ -34,6 +34,7 @@ import {
   CalendarCheck,
   CalendarOff,
   Clock,
+  Target,
 } from 'lucide-vue-next'
 import { useTheme } from '~/composables/useTheme'
 import { useAuthStore } from '~/stores/auth'
@@ -44,7 +45,7 @@ const { t, locale, setLocale } = useI18n()
 const router = useRouter()
 const isSidebarOpen = ref(true)
 const isMobileSidebarOpen = ref(false)
-const recruitmentMenuOpen = ref(true)
+const recruitmentMenuOpen = ref(false)
 const companyMenuOpen = ref(false)
 const employeeMenuOpen = ref(false)
 const profileDropdownOpen = ref(false)
@@ -111,6 +112,7 @@ const allNavItems = computed(() => {
   items.push({ name: 'nav.attendance', href: '/attendance', icon: CalendarCheck, external: false })
   items.push({ name: 'nav.cuti', href: '/leave', icon: CalendarOff, external: false })
   items.push({ name: 'nav.overtime', href: '/overtime', icon: Clock, external: false })
+  items.push({ name: 'nav.kpi', href: '/kpi', icon: Target, external: false })
   items.push(...recruitmentSubMenu)
   items.push(...companySubMenu)
   items.push({ name: 'nav.learningHub', href: '/lms', icon: GraduationCap, external: false })
@@ -127,6 +129,7 @@ const navKeyToModule: Record<string, string> = {
   payroll: 'payroll',
   initialPayroll: 'initialPayroll',
   generatePayroll: 'generatePayroll',
+  kpi: 'kpi',
 }
 watch(
   () => route.path,
@@ -447,7 +450,36 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 7. Recruitment (expandable) -->
+        <!-- 7. KPI -->
+        <NuxtLink
+          to="/kpi"
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+            isNavActive('/kpi')
+              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          ]"
+          @click="isMobileSidebarOpen = false"
+        >
+          <Target
+            :class="[
+              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+              isNavActive('/kpi') ? 'text-foreground' : 'group-hover:scale-110',
+            ]"
+          />
+          <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.kpi') || 'KPI' }}</span>
+          </Transition>
+        </NuxtLink>
+
+        <!-- 8. Recruitment (expandable) -->
         <div class="space-y-1">
           <button
             type="button"

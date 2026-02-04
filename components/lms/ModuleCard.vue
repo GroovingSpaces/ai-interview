@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { LearningModule } from '~/stores/lms'
+import { useI18n } from 'vue-i18n'
 import { cn } from '~/lib/utils'
-import { Clock, Lock, Play, CheckCircle, BookOpen, Sparkles } from 'lucide-vue-next'
+import { Clock, Lock, Play, CheckCircle, BookOpen, Sparkles, ExternalLink } from 'lucide-vue-next'
 
 interface Props {
   module: LearningModule
@@ -10,10 +11,15 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 
 const emit = defineEmits<{
   start: [moduleId: string]
 }>()
+
+function goToDetail() {
+  if (!props.module.locked) navigateTo(`/lms/${props.module.id}`)
+}
 
 const difficultyColors = {
   beginner: 'bg-score-excellent/20 text-score-excellent border-score-excellent/30',
@@ -36,11 +42,15 @@ const formatDuration = (minutes: number): string => {
       module.locked
         ? 'bg-muted/20 border-border cursor-not-allowed opacity-60'
         : module.completed
-          ? 'bg-card border-score-excellent/30 hover:border-score-excellent/50'
+          ? 'bg-card border-score-excellent/30 hover:border-score-excellent/50 cursor-pointer'
           : 'bg-card border-border hover:border-primary/30 cursor-pointer hover:shadow-lg hover:shadow-primary/5',
       props.class
     )"
-    @click="!module.locked && !module.completed && emit('start', module.id)"
+    role="button"
+    tabindex="0"
+    @click="goToDetail"
+    @keydown.enter="goToDetail"
+    @keydown.space.prevent="goToDetail"
   >
     <!-- Locked overlay -->
     <div
@@ -103,7 +113,7 @@ const formatDuration = (minutes: number): string => {
     </div>
 
     <!-- Footer -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-2">
       <div class="flex items-center gap-4 text-sm text-muted-foreground">
         <span class="flex items-center gap-1">
           <Clock class="w-4 h-4" />
@@ -111,14 +121,25 @@ const formatDuration = (minutes: number): string => {
         </span>
         <span class="flex items-center gap-1">
           <BookOpen class="w-4 h-4" />
-          {{ module.lessons.length }} lessons
+          {{ module.lessons.length }} {{ t('learningHub.lessons') }}
         </span>
       </div>
-      <div v-if="!module.locked && !module.completed" class="flex items-center gap-1 text-primary">
-        <Play class="w-4 h-4" />
-        <span class="text-sm font-medium">
-          {{ module.progress > 0 ? 'Continue' : 'Start' }}
-        </span>
+      <div class="flex items-center gap-2" @click.stop>
+        <NuxtLink
+          :to="`/lms/${module.id}`"
+          class="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ExternalLink class="w-4 h-4" />
+          {{ t('learningHub.viewDetail') }}
+        </NuxtLink>
+        <NuxtLink
+          v-if="!module.locked && !module.completed"
+          :to="`/lms/${module.id}`"
+          class="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium"
+        >
+          <Play class="w-4 h-4" />
+          {{ module.progress > 0 ? t('learningHub.continueModule') : t('learningHub.startModule') }}
+        </NuxtLink>
       </div>
     </div>
 

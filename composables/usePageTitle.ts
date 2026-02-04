@@ -28,6 +28,7 @@ const TITLES: Record<string, Record<string, string>> = {
     location: 'Location',
     organization: 'Organization',
     learningHub: 'Learning Hub',
+    kpi: 'KPI',
   },
   id: {
     dashboard: 'Dashboard',
@@ -54,6 +55,7 @@ const TITLES: Record<string, Record<string, string>> = {
     location: 'Lokasi',
     organization: 'Organisasi',
     learningHub: 'Learning Hub',
+    kpi: 'KPI',
   },
 }
 
