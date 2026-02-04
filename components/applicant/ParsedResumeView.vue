@@ -24,14 +24,14 @@ const resume = computed(() => applicationStore.parsedResume)
 
 <template>
   <div v-if="resume" class="space-y-6">
-    <!-- AI Insights Card -->
+    <!-- Insights Card -->
     <div class="glass-card gradient-border p-6 space-y-6">
       <div class="flex items-center gap-3">
         <div class="p-2 rounded-lg bg-ai-orange/20">
           <Sparkles class="w-5 h-5 text-ai-orange" />
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-foreground">AI Insights</h2>
+          <h2 class="text-lg font-semibold text-foreground">Insights</h2>
           <p class="text-sm text-muted-foreground">Personalized analysis of your profile</p>
         </div>
       </div>

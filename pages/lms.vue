@@ -74,7 +74,7 @@ const stats = [
         <div class="space-y-4">
           <div class="flex items-center gap-2">
             <Sparkles class="w-5 h-5 text-ai-red" />
-            <span class="text-sm font-medium text-ai-red">AI-Powered Learning</span>
+            <span class="text-sm font-medium text-ai-red">Learning</span>
           </div>
           <h1 class="text-3xl lg:text-4xl font-bold text-foreground">
             Your Learning Journey
@@ -188,7 +188,7 @@ const stats = [
       </div>
     </div>
 
-    <!-- AI Quiz Demo -->
+    <!-- Quiz Demo -->
     <div class="glass-card p-6 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -196,7 +196,7 @@ const stats = [
             <Sparkles class="w-5 h-5 text-ai-orange" />
           </div>
           <div>
-            <h3 class="font-semibold text-foreground">AI-Generated Quiz</h3>
+            <h3 class="font-semibold text-foreground">Generated Quiz</h3>
             <p class="text-sm text-muted-foreground">Test your knowledge with personalized questions</p>
           </div>
         </div>
@@ -227,7 +227,7 @@ const stats = [
             questions: [
               {
                 id: 'q1',
-                question: 'What is the primary purpose of our AI recruitment system?',
+                question: 'What is the primary purpose of our recruitment system?',
                 options: [
                   'To replace human HR staff',
                   'To streamline and enhance the hiring process',
@@ -235,19 +235,19 @@ const stats = [
                   'To manage payroll',
                 ],
                 correctAnswer: 1,
-                explanation: 'The AI system is designed to assist and enhance, not replace human decision-making.',
+                explanation: 'The system is designed to assist and enhance, not replace human decision-making.',
               },
               {
                 id: 'q2',
                 question: 'Which metric best indicates a strong candidate match?',
                 options: [
                   'Years of experience only',
-                  'AI Score combined with interview performance',
+                  'Score combined with interview performance',
                   'Number of certifications',
                   'Previous salary',
                 ],
                 correctAnswer: 1,
-                explanation: 'A holistic approach combining AI analysis and human assessment provides the best results.',
+                explanation: 'A holistic approach combining analysis and human assessment provides the best results.',
               },
             ],
           }"

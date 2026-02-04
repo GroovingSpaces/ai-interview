@@ -123,10 +123,10 @@ function resetUpload() {
         </div>
       </div>
 
-      <!-- AI badge -->
+      <!-- Analysis badge -->
       <div class="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-ai-orange/10 border border-ai-orange/30">
         <Sparkles class="w-4 h-4 text-ai-orange" />
-        <span class="text-sm font-medium text-ai-orange">AI-Powered Analysis</span>
+        <span class="text-sm font-medium text-ai-orange">Analysis</span>
       </div>
     </div>
 
@@ -151,7 +151,7 @@ function resetUpload() {
       <div class="space-y-2">
         <h3 class="text-xl font-semibold text-foreground">{{ applicationStore.currentStep }}</h3>
         <p class="text-muted-foreground">
-          Please wait while our AI analyzes your resume
+          Please wait while we analyze your resume
         </p>
       </div>
 
@@ -199,7 +199,7 @@ function resetUpload() {
 
       <div class="flex items-center gap-2 text-sm text-ai-orange">
         <Sparkles class="w-4 h-4" />
-        <span>AI analysis complete - scroll down to see results</span>
+        <span>Analysis complete - scroll down to see results</span>
       </div>
     </div>
 

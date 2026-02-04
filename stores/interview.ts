@@ -141,7 +141,7 @@ export const useInterviewStore = defineStore('interview', () => {
       if (currentSession.value) {
         currentSession.value.state = 'ready'
       }
-      addTranscriptEntry('ai', `Hello! I'm ${aiAssistant.value.name}, your AI interviewer today. I'll be conducting your interview for the ${position} position. Are you ready to begin?`)
+      addTranscriptEntry('ai', `Hello! I'm ${aiAssistant.value.name}, your interviewer today. I'll be conducting your interview for the ${position} position. Are you ready to begin?`)
     }, 2000)
   }
 

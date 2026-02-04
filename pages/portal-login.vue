@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Internal Login - Telkomsel AI HCM',
+  title: 'Internal Login - Telkomsel HCM',
 })
 
 const authStore = useAuthStore()
@@ -70,7 +70,7 @@ function fillCredentials(cred: typeof demoCredentials[0]) {
           Internal Staff
         </div>
         <h1 class="text-2xl font-bold text-foreground">Staff Portal</h1>
-        <p class="text-muted-foreground mt-1">Sign in to Telkomsel AI HCM Dashboard</p>
+        <p class="text-muted-foreground mt-1">Sign in to Telkomsel HCM Dashboard</p>
       </div>
 
       <!-- Login Card -->

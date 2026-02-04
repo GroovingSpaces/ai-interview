@@ -167,7 +167,7 @@ const isRegisterFormValid = computed(() => {
           </div>
           <div>
             <span class="font-bold text-foreground text-lg">Telkomsel Careers</span>
-            <p class="text-xs text-muted-foreground">Powered by AI</p>
+            <p class="text-xs text-muted-foreground">Telkomsel HCM</p>
           </div>
         </NuxtLink>
 

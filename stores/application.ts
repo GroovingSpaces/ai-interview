@@ -132,7 +132,7 @@ export const useApplicationStore = defineStore('application', () => {
       location: 'Jakarta, Indonesia',
       type: 'full-time',
       remote: false,
-      description: 'Lead product strategy and roadmap for our AI recruitment platform.',
+      description: 'Lead product strategy and roadmap for our recruitment platform.',
       requirements: [
         '4+ years of product management experience',
         'Experience with B2B SaaS products',
@@ -174,7 +174,7 @@ export const useApplicationStore = defineStore('application', () => {
       location: 'Jakarta, Indonesia',
       type: 'full-time',
       remote: true,
-      description: 'Build ML models to power our AI recruitment features.',
+      description: 'Build models to power our recruitment features.',
       requirements: [
         'MS/PhD in Computer Science or related field',
         'Experience with Python, TensorFlow/PyTorch',
@@ -217,7 +217,7 @@ export const useApplicationStore = defineStore('application', () => {
       }
 
       status.value = 'analyzing'
-      currentStep.value = 'AI is analyzing your profile...'
+      currentStep.value = 'Analyzing your profile...'
 
       for (let i = 60; i <= 90; i += 10) {
         await delay(400)
@@ -315,7 +315,7 @@ export const useApplicationStore = defineStore('application', () => {
         ],
         areasForGrowth: [
           'Could benefit from more backend/infrastructure experience',
-          'Consider expanding into ML/AI technologies',
+          'Consider expanding into new technologies',
         ],
         cultureFitScore: 85,
         technicalScore: 88,

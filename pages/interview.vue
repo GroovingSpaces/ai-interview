@@ -16,7 +16,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'AI Interview',
+  title: 'Interview',
 })
 
 const interviewStore = useInterviewStore()
@@ -130,9 +130,9 @@ onUnmounted(() => {
         </div>
 
         <div class="space-y-2">
-          <h1 class="text-3xl font-bold text-foreground">AI Interview Assistant</h1>
+          <h1 class="text-3xl font-bold text-foreground">Interview Assistant</h1>
           <p class="text-muted-foreground">
-            Select a candidate to begin an AI-powered interview session
+            Select a candidate to begin an interview session
           </p>
         </div>
 
@@ -195,7 +195,7 @@ onUnmounted(() => {
             @click="startInterview"
           >
             <Sparkles class="w-5 h-5" />
-            Start AI Interview
+            Start Interview
           </UiButton>
         </div>
 
@@ -211,7 +211,7 @@ onUnmounted(() => {
             <div class="w-12 h-12 mx-auto rounded-xl bg-ai-orange/10 flex items-center justify-center">
               <BarChart3 class="w-6 h-6 text-ai-orange" />
             </div>
-            <p class="text-sm text-muted-foreground">AI Analysis</p>
+            <p class="text-sm text-muted-foreground">Analysis</p>
           </div>
           <div class="text-center space-y-2">
             <div class="w-12 h-12 mx-auto rounded-xl bg-ai-red/10 flex items-center justify-center">
@@ -254,7 +254,7 @@ onUnmounted(() => {
             <div class="absolute inset-0 grid-bg opacity-50" />
             <div class="absolute inset-0 radial-overlay" />
 
-            <!-- AI Avatar centered -->
+            <!-- Avatar centered -->
             <div class="absolute inset-0 flex items-center justify-center">
               <div class="text-center space-y-6">
                 <InterviewAIAvatar size="xl" />
@@ -262,7 +262,7 @@ onUnmounted(() => {
                   <h3 class="text-lg font-semibold text-foreground">
                     {{ interviewStore.aiAssistant.name }}
                   </h3>
-                  <p class="text-sm text-muted-foreground">AI Interview Assistant</p>
+                  <p class="text-sm text-muted-foreground">Interview Assistant</p>
                 </div>
                 <InterviewAudioVisualizer v-if="['listening', 'speaking', 'thinking'].includes(interviewStore.state)" />
               </div>

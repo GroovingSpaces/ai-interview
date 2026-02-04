@@ -255,7 +255,7 @@ async function submitApplication() {
             <h2 class="text-lg font-semibold text-foreground">Upload Your CV *</h2>
             <div class="flex items-center gap-2 text-sm text-muted-foreground">
               <Sparkles class="w-4 h-4 text-ai-red" />
-              AI-Powered Analysis
+              Analysis
             </div>
           </div>
 
@@ -315,7 +315,7 @@ async function submitApplication() {
           </div>
 
           <p class="text-sm text-muted-foreground">
-            Our AI will analyze your CV to match you with this position and provide insights.
+            Your CV will be analyzed to match you with this position and provide insights.
           </p>
         </div>
 

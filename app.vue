@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Main app entry
 useHead({
-  titleTemplate: '%s | Telkomsel AI HCM',
+  titleTemplate: '%s | Telkomsel HCM',
 })
 </script>
 

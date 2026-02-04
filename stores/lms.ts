@@ -103,8 +103,8 @@ export const useLmsStore = defineStore('lms', () => {
     },
     {
       id: '3',
-      title: 'AI & Machine Learning Fundamentals',
-      description: 'Understand the basics of AI/ML and how we apply them in our products.',
+      title: 'Machine Learning Fundamentals',
+      description: 'Understand the basics of ML and how we apply them in our products.',
       category: 'Technical',
       duration: 180,
       difficulty: 'intermediate',
@@ -113,10 +113,10 @@ export const useLmsStore = defineStore('lms', () => {
       locked: false,
       icon: '🤖',
       lessons: [
-        { id: '3-1', title: 'Introduction to AI', type: 'video', duration: 30, completed: true },
+        { id: '3-1', title: 'Introduction', type: 'video', duration: 30, completed: true },
         { id: '3-2', title: 'Machine Learning Concepts', type: 'reading', duration: 25, completed: true },
         { id: '3-3', title: 'Neural Networks Explained', type: 'video', duration: 35, completed: false },
-        { id: '3-4', title: 'AI in Recruitment', type: 'interactive', duration: 40, completed: false },
+        { id: '3-4', title: 'Recruitment', type: 'interactive', duration: 40, completed: false },
         { id: '3-5', title: 'Practical ML Exercise', type: 'exercise', duration: 50, completed: false },
       ],
     },
@@ -189,12 +189,12 @@ export const useLmsStore = defineStore('lms', () => {
     },
     {
       id: 'path-2',
-      title: 'AI Engineer Track',
-      description: 'Comprehensive path for AI/ML specialization',
+      title: 'Engineer Track',
+      description: 'Comprehensive path for ML specialization',
       modules: ['2', '3', '5'],
       progress: 35,
       estimatedTime: 540,
-      skills: ['Machine Learning', 'Cloud Architecture', 'AI Development'],
+      skills: ['Machine Learning', 'Cloud Architecture', 'Development'],
     },
     {
       id: 'path-3',
@@ -297,7 +297,7 @@ export const useLmsStore = defineStore('lms', () => {
     // Simulate AI-generated quiz
     const aiQuiz: Quiz = {
       id: `ai-quiz-${moduleId}`,
-      title: 'AI-Generated Assessment',
+      title: 'Generated Assessment',
       aiGenerated: true,
       passScore: 70,
       completed: false,
@@ -307,12 +307,12 @@ export const useLmsStore = defineStore('lms', () => {
           question: 'Based on the module content, which approach is most effective for this scenario?',
           options: [
             'Option A: Traditional approach',
-            'Option B: AI-enhanced approach',
+            'Option B: Enhanced approach',
             'Option C: Hybrid approach',
             'Option D: Manual approach',
           ],
           correctAnswer: 2,
-          explanation: 'A hybrid approach combines the best of both traditional and AI methods.',
+          explanation: 'A hybrid approach combines the best of both traditional and modern methods.',
         },
         {
           id: 'q2',

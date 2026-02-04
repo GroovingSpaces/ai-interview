@@ -1,182 +1,186 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useCandidatesStore } from '~/stores/candidates'
-import {
-  Users,
-  UserCheck,
-  Clock,
-  TrendingUp,
-  Filter,
-  Download,
-  Plus,
-  Search,
-  Sparkles,
-} from 'lucide-vue-next'
+import { useEmployeesStore } from '~/stores/employees'
+import { useCompanyStore } from '~/stores/company'
+import { useLeaveStore } from '~/stores/leave'
+import type { LeaveType } from '~/stores/leave'
+import { UsersRound, Building2, CalendarOff, Megaphone } from 'lucide-vue-next'
 
-// Protect dashboard - only for staff
 definePageMeta({
   middleware: 'admin',
 })
 
-useHead({
-  title: 'Dashboard',
+const { title } = usePageTitle('dashboard')
+const t = useModuleT('dashboard')
+const tLeave = useModuleT('leave')
+useHead({ title: () => title.value })
+
+const employeesStore = useEmployeesStore()
+const companyStore = useCompanyStore()
+const leaveStore = useLeaveStore()
+
+// Summary stats for dashboard
+const summaryTotalEmployee = computed(() => employeesStore.employeeStats.total)
+const summaryTotalOrganization = computed(() => companyStore.organizations.length)
+const summaryLeaveToday = computed(() => Math.max(0, Number(leaveStore.leaveTodayCount) || 0))
+const announcementCount = computed(() => 0)
+
+// Who's leave today: approved leave where today is between startDate and endDate
+const leaveTodayList = computed(() => {
+  const today = new Date().toISOString().slice(0, 10)
+  return leaveStore.requests
+    .filter(
+      (r) =>
+        r.status === 'approved' &&
+        r.startDate <= today &&
+        r.endDate >= today
+    )
+    .map((r) => {
+      const emp = employeesStore.getEmployeeById(r.employeeId)
+      return {
+        id: r.id,
+        employeeName: emp?.name ?? r.employeeId,
+        type: r.type,
+        reason: r.reason,
+        days: r.days,
+      }
+    })
 })
 
-const candidatesStore = useCandidatesStore()
+// Today's birthdays: employees whose dateOfBirth month-day matches today
+const birthdaysTodayList = computed(() => {
+  const today = new Date()
+  const mmdd = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  return employeesStore.employees
+    .filter((e) => {
+      if (!e.dateOfBirth || e.dateOfBirth.length < 10) return false
+      const dobMmdd = e.dateOfBirth.slice(5, 10)
+      return dobMmdd === mmdd
+    })
+    .map((e) => ({ name: e.name, department: e.department, dateOfBirth: e.dateOfBirth }))
+})
 
-const stats = computed(() => [
-  {
-    title: 'Total Candidates',
-    value: candidatesStore.candidates.length,
-    change: 12,
-    changeLabel: 'vs last month',
-    icon: Users,
-  },
-  {
-    title: 'Active Pipeline',
-    value: candidatesStore.stageStats.interview + candidatesStore.stageStats.assessment + candidatesStore.stageStats.offer,
-    change: 8,
-    changeLabel: 'vs last week',
-    icon: Clock,
-  },
-  {
-    title: 'Hired This Month',
-    value: candidatesStore.stageStats.hired,
-    change: 25,
-    changeLabel: 'vs last month',
-    icon: UserCheck,
-  },
-  {
-    title: 'Avg. AI Score',
-    value: `${candidatesStore.averageAiScore}%`,
-    change: 3,
-    changeLabel: 'improvement',
-    icon: Sparkles,
-  },
-])
-
-const funnelStages = computed(() => [
-  { sort: 1, name: 'Applied', count: candidatesStore.stageStats.applied, color: '#3B82F6' },
-  { sort: 2, name: 'Screening', count: candidatesStore.stageStats.screening, color: '#8B5CF6' },
-  { sort: 3, name: 'Interview', count: candidatesStore.stageStats.interview, color: '#00D4FF' },
-  { sort: 4, name: 'Assessment', count: candidatesStore.stageStats.assessment, color: '#F59E0B' },
-  { sort: 5, name: 'Offer', count: candidatesStore.stageStats.offer, color: '#10B981' },
-  { sort: 6, name: 'Hired', count: candidatesStore.stageStats.hired, color: '#22C55E' },
-])
-
-const stageOptions = [
-  { value: 'all', label: 'All Stages' },
-  { value: 'applied', label: 'Applied' },
-  { value: 'screening', label: 'Screening' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'offer', label: 'Offer' },
-  { value: 'hired', label: 'Hired' },
-  { value: 'rejected', label: 'Rejected' },
-]
-
-const departmentOptions = [
-  { value: 'all', label: 'All Departments' },
-  { value: 'Engineering', label: 'Engineering' },
-  { value: 'Product', label: 'Product' },
-  { value: 'Design', label: 'Design' },
-  { value: 'Analytics', label: 'Analytics' },
-]
+function leaveTypeLabel(type: LeaveType): string {
+  const key = type === 'annual' ? 'annual' : type === 'sick' ? 'sick' : type === 'personal' ? 'personal' : type === 'unpaid' ? 'unpaid' : 'other'
+  return tLeave(key) || type
+}
 </script>
 
 <template>
   <div class="space-y-8">
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <DashboardStatsCard
-        v-for="(stat, index) in stats"
-        :key="stat.title"
-        :title="stat.title"
-        :value="stat.value"
-        :change="stat.change"
-        :change-label="stat.changeLabel"
-        :icon="stat.icon"
-        :variant="index === 0 ? 'gradient' : 'default'"
-        :class="{ 'animate-fade-in': true }"
-        :style="{ animationDelay: `${index * 100}ms` }"
-      />
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-bold text-foreground">{{ title }}</h1>
+      <p class="text-muted-foreground">{{ t('subtitle') }}</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Recruitment Funnel -->
-      <UiCard variant="glass" class="lg:col-span-1">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h2 class="text-lg font-semibold text-foreground">Recruitment Funnel</h2>
-            <p class="text-sm text-muted-foreground">Pipeline overview</p>
+    <!-- Summary -->
+    <div>
+      <h2 class="text-lg font-semibold text-foreground mb-4">{{ t('summary') }}</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-t from-ai-red to-ai-orange text-white">
+            <UsersRound class="w-6 h-6" />
           </div>
-          <div class="p-2 rounded-xl bg-primary/10">
-            <TrendingUp class="w-5 h-5 text-primary" />
-          </div>
-        </div>
-        <DashboardFunnelChart :stages="funnelStages" />
-      </UiCard>
-
-      <!-- Candidates Table -->
-      <div class="lg:col-span-2 space-y-4">
-        <!-- Filters -->
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1 relative">
-            <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <UiInput
-              v-model="candidatesStore.searchQuery"
-              placeholder="Search candidates..."
-              class="pl-11"
-            />
-          </div>
-          <div class="flex gap-2">
-            <UiSelect
-              v-model="candidatesStore.stageFilter"
-              :options="stageOptions"
-              class="w-40"
-            />
-            <UiSelect
-              v-model="candidatesStore.departmentFilter"
-              :options="departmentOptions"
-              class="w-44"
-            />
-            <UiButton variant="outline">
-              <Filter class="w-4 h-4" />
-              <span class="hidden sm:inline">Filters</span>
-            </UiButton>
-            <UiButton variant="gradient">
-              <Plus class="w-4 h-4" />
-              <span class="hidden sm:inline">Add Candidate</span>
-            </UiButton>
+          <div class="min-w-0">
+            <p class="text-sm text-muted-foreground">{{ t('totalEmployee') }}</p>
+            <p class="text-2xl font-bold text-foreground">{{ summaryTotalEmployee }}</p>
           </div>
         </div>
-
-        <!-- Table -->
-        <DashboardCandidateTable />
+        <div class="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-t from-ai-orange to-ai-red text-white">
+            <Building2 class="w-6 h-6" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-muted-foreground">{{ t('totalOrganization') }}</p>
+            <p class="text-2xl font-bold text-foreground">{{ summaryTotalOrganization }}</p>
+          </div>
+        </div>
+        <div class="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-t from-ai-red to-ai-orange text-white">
+            <CalendarOff class="w-6 h-6" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-muted-foreground">{{ t('leaveToday') }}</p>
+            <p class="text-2xl font-bold text-foreground tabular-nums">{{ summaryLeaveToday }}</p>
+          </div>
+        </div>
+        <div class="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-t from-ai-orange to-ai-red text-white">
+            <Megaphone class="w-6 h-6" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-muted-foreground">{{ t('announce') }}</p>
+            <p class="text-2xl font-bold text-foreground">{{ announcementCount }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Candidate Detail Sidebar -->
-    <DashboardCandidateDetail />
+    <!-- Who's Leave Today -->
+    <div class="rounded-xl border border-border bg-card overflow-hidden">
+      <div class="border-b border-border bg-muted/30 px-5 py-4">
+        <h2 class="text-lg font-semibold text-foreground">{{ t('leaveTodayList') || "Who's Leave Today" }}</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[400px] text-sm">
+          <thead>
+            <tr class="border-b border-border bg-muted/50">
+              <th class="text-left font-medium text-foreground p-3">{{ tLeave('employee') }}</th>
+              <th class="text-left font-medium text-foreground p-3">{{ tLeave('type') }}</th>
+              <th class="text-left font-medium text-foreground p-3">{{ tLeave('reason') }}</th>
+              <th class="text-left font-medium text-foreground p-3">{{ tLeave('days') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="leaveTodayList.length === 0" class="border-b border-border">
+              <td colspan="4" class="p-4 text-muted-foreground text-center">{{ t('noLeaveToday') }}</td>
+            </tr>
+            <tr
+              v-for="row in leaveTodayList"
+              :key="row.id"
+              class="border-b border-border hover:bg-muted/30"
+            >
+              <td class="p-3 text-foreground">{{ row.employeeName }}</td>
+              <td class="p-3 text-foreground">{{ leaveTypeLabel(row.type) }}</td>
+              <td class="p-3 text-muted-foreground">{{ row.reason }}</td>
+              <td class="p-3 text-foreground tabular-nums">{{ row.days }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <!-- Quick Actions Bar -->
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 lg:left-auto lg:translate-x-0 lg:right-8">
-      <div class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-lg">
-        <span class="text-sm text-muted-foreground hidden sm:inline">Quick Actions</span>
-        <div class="flex gap-2">
-          <UiButton variant="outline" size="sm">
-            <Download class="w-4 h-4" />
-            Export
-          </UiButton>
-          <NuxtLink to="/interview">
-            <UiButton variant="gradient" size="sm">
-              <Sparkles class="w-4 h-4" />
-              Start AI Interview
-            </UiButton>
-          </NuxtLink>
-        </div>
+    <!-- Today's Birthdays -->
+    <div class="rounded-xl border border-border bg-card overflow-hidden">
+      <div class="border-b border-border bg-muted/30 px-5 py-4">
+        <h2 class="text-lg font-semibold text-foreground">{{ t('birthdaysToday') || "Today's Birthdays" }}</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[300px] text-sm">
+          <thead>
+            <tr class="border-b border-border bg-muted/50">
+              <th class="text-left font-medium text-foreground p-3">{{ tLeave('employee') }}</th>
+              <th class="text-left font-medium text-foreground p-3">{{ t('department') }}</th>
+              <th class="text-left font-medium text-foreground p-3">{{ t('date') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="birthdaysTodayList.length === 0" class="border-b border-border">
+              <td colspan="3" class="p-4 text-muted-foreground text-center">{{ t('noBirthdaysToday') }}</td>
+            </tr>
+            <tr
+              v-for="(row, i) in birthdaysTodayList"
+              :key="i"
+              class="border-b border-border hover:bg-muted/30"
+            >
+              <td class="p-3 text-foreground">{{ row.name }}</td>
+              <td class="p-3 text-muted-foreground">{{ row.department }}</td>
+              <td class="p-3 text-foreground">{{ row.dateOfBirth }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
-

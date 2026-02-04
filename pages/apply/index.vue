@@ -43,7 +43,7 @@ const steps = [
   { 
     id: 3, 
     title: 'Apply', 
-    description: 'Upload your CV and let our AI analyze your profile',
+    description: 'Upload your CV and get your profile analyzed',
     icon: Sparkles,
   },
   { 
@@ -68,7 +68,7 @@ const typeColors: Record<string, string> = {
     <div class="text-center space-y-6 max-w-3xl mx-auto pt-8">
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
         <Sparkles class="w-4 h-4" />
-        AI-Powered Recruitment
+        Recruitment
       </div>
       <h1 class="text-4xl lg:text-5xl font-bold text-foreground">
         Find Your Perfect Role at <span class="ai-text-gradient">Telkomsel</span>

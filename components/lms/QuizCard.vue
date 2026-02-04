@@ -64,7 +64,7 @@ function resetQuiz() {
         </div>
         <div>
           <h3 class="font-semibold text-foreground">{{ quiz.title }}</h3>
-          <p v-if="quiz.aiGenerated" class="text-xs text-ai-orange">AI Generated</p>
+          <p v-if="quiz.aiGenerated" class="text-xs text-ai-orange">Generated</p>
         </div>
       </div>
       <span class="text-sm text-muted-foreground">

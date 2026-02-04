@@ -81,7 +81,7 @@ const columns: ColumnDef<Candidate>[] = [
   },
   {
     accessorKey: 'aiScore',
-    header: 'AI Score',
+    header: 'Score',
     cell: ({ getValue }) => {
       const score = getValue() as number
       const colorKey = getScoreColor(score)

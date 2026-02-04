@@ -487,7 +487,7 @@ function openWhatsApp() {
                   <div class="absolute top-4 left-1/2 -translate-x-1/2 w-0.5 h-12 bg-border" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-foreground">AI Score calculated</p>
+                  <p class="text-sm font-medium text-foreground">Score calculated</p>
                   <p class="text-xs text-muted-foreground">{{ formatDate(candidate.appliedAt) }}</p>
                 </div>
               </div>

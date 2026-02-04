@@ -1,20 +1,20 @@
-# Telkomsel AI HCM - Recruitment Suite
+# Telkomsel HCM - Recruitment Suite
 
-A modern, AI-powered Human Capital Management dashboard built with Nuxt.js. This application provides a comprehensive recruitment platform featuring AI-driven candidate matching, intelligent interviews, and adaptive learning management.
+A modern Human Capital Management dashboard built with Nuxt.js. This application provides a comprehensive recruitment platform featuring candidate matching, interviews, and adaptive learning management.
 
-![Dashboard Preview](https://via.placeholder.com/1200x600/0a0f1a/00d4ff?text=AI+Recruitment+Suite)
+![Dashboard Preview](https://via.placeholder.com/1200x600/0a0f1a/00d4ff?text=Recruitment+Suite)
 
 ## ✨ Features
 
 ### 🎯 HR Command Center
 - **Candidate Pipeline Dashboard** - Visual funnel showing candidates across all stages
 - **TanStack Table Integration** - Sortable, filterable candidate list with pagination
-- **AI Match Scores** - Color-coded scoring system (Excellent/Good/Average/Low)
+- **Match Scores** - Color-coded scoring system (Excellent/Good/Average/Low)
 - **Quick Actions** - Immediate access to candidate profiles and actions
 
-### 🤖 AI Interview Interface
+### 🤖 Interview Interface
 - **Real-time Transcript** - Live conversation display with speaker identification
-- **AI Status Indicators** - Visual feedback for Listening/Thinking/Speaking states
+- **Status Indicators** - Visual feedback for Listening/Thinking/Speaking states
 - **Audio Visualization** - Dynamic waveform display during active sessions
 - **Question Progress Tracking** - Type-coded questions with difficulty levels
 - **Real-time Metrics** - Confidence, engagement, and clarity scoring
@@ -22,15 +22,15 @@ A modern, AI-powered Human Capital Management dashboard built with Nuxt.js. This
 ### 📚 Learning Management System (LMS)
 - **Adaptive Learning Paths** - Personalized training roadmaps
 - **Module Cards** - Progress tracking with lesson completion
-- **AI-Generated Quizzes** - Dynamic assessments with instant feedback
+- **Generated Quizzes** - Dynamic assessments with instant feedback
 - **Badge System** - Achievement recognition for completed milestones
 - **Progress Visualization** - Circular progress rings and progress bars
 
 ### 📄 Applicant Portal
 - **Drag-and-Drop CV Upload** - Intuitive file upload interface
-- **AI Resume Parsing** - Automatic extraction of skills, experience, education
+- **Resume Parsing** - Automatic extraction of skills, experience, education
 - **Match Score Visualization** - Position compatibility scoring
-- **Instant AI Feedback** - Strengths and areas for improvement
+- **Instant Feedback** - Strengths and areas for improvement
 - **Job Discovery** - Searchable, filterable position listings
 
 ## 🛠️ Tech Stack
@@ -86,7 +86,7 @@ telkomsel-ai-hcm-fe/
 ├── components/
 │   ├── ui/                   # Base UI components (Button, Card, etc.)
 │   ├── dashboard/            # HR dashboard components
-│   ├── interview/            # AI interview components
+│   ├── interview/            # Interview components
 │   ├── lms/                  # Learning management components
 │   └── applicant/            # Applicant portal components
 ├── composables/              # Vue composables
@@ -98,7 +98,7 @@ telkomsel-ai-hcm-fe/
 ├── pages/
 │   ├── index.vue             # Command Center dashboard
 │   ├── candidates.vue        # Full candidates view
-│   ├── interview.vue         # AI interview interface
+│   ├── interview.vue         # Interview interface
 │   ├── lms.vue               # Learning hub
 │   └── apply.vue             # Applicant portal
 ├── plugins/                  # Nuxt plugins
@@ -174,5 +174,5 @@ This project is proprietary software for Telkomsel.
 
 ---
 
-Built with ❤️ for Telkomsel's AI-driven recruitment transformation
+Built with ❤️ for Telkomsel's recruitment transformation
 

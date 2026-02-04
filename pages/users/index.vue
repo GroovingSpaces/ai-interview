@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useUsersStore } from '~/stores/users'
 import { useAuthStore } from '~/stores/auth'
-import type { User, UserRole } from '~/stores/auth'
+import type { User } from '~/stores/auth'
 import {
   Search,
   Plus,
@@ -13,8 +13,6 @@ import {
   UserX,
   Edit,
   Trash2,
-  X,
-  Check,
   AlertTriangle,
   Mail,
   Building2,
@@ -28,9 +26,8 @@ definePageMeta({
   middleware: 'admin',
 })
 
-useHead({
-  title: 'User Management',
-})
+const { title } = usePageTitle('users')
+useHead({ title: () => title.value })
 
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
@@ -39,29 +36,14 @@ const authStore = useAuthStore()
 const activeTab = ref<'admin' | 'candidates'>('admin')
 
 // Modal states
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedUser = ref<User | null>(null)
 
-// Form state
-const formData = ref({
-  email: '',
-  name: '',
-  role: 'recruiter' as UserRole,
-  department: '',
-  password: '',
-  confirmPassword: '',
-})
-
-const roleOptions = [
+const adminRoleOptions = [
   { value: 'admin', label: 'Admin' },
   { value: 'hr', label: 'HR' },
   { value: 'recruiter', label: 'Recruiter' },
-  { value: 'candidate', label: 'Candidate' },
 ]
-
-const adminRoleOptions = roleOptions.filter(r => r.value !== 'candidate')
 const statusOptions = [
   { value: 'all', label: 'All Status' },
   { value: 'active', label: 'Active' },
@@ -75,68 +57,14 @@ const roleColors: Record<string, { bg: string; text: string; border: string }> =
   candidate: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/30' },
 }
 
-function resetForm() {
-  formData.value = {
-    email: '',
-    name: '',
-    role: activeTab.value === 'admin' ? 'recruiter' : 'candidate',
-    department: '',
-    password: '',
-    confirmPassword: '',
-  }
-}
-
-function openCreateModal() {
-  resetForm()
-  showCreateModal.value = true
-}
-
-function openEditModal(user: User) {
-  selectedUser.value = user
-  formData.value = {
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    department: user.department || '',
-    password: '',
-    confirmPassword: '',
-  }
-  showEditModal.value = true
-}
-
 function openDeleteModal(user: User) {
   selectedUser.value = user
   showDeleteModal.value = true
 }
 
 function closeModals() {
-  showCreateModal.value = false
-  showEditModal.value = false
   showDeleteModal.value = false
   selectedUser.value = null
-  resetForm()
-}
-
-function handleCreate() {
-  usersStore.addUser({
-    email: formData.value.email,
-    name: formData.value.name,
-    role: formData.value.role,
-    department: formData.value.department || undefined,
-    password: formData.value.password,
-  })
-  closeModals()
-}
-
-function handleUpdate() {
-  if (!selectedUser.value) return
-  usersStore.updateUser(selectedUser.value.id, {
-    email: formData.value.email,
-    name: formData.value.name,
-    role: formData.value.role,
-    department: formData.value.department || undefined,
-  })
-  closeModals()
 }
 
 function handleDelete() {
@@ -148,20 +76,6 @@ function handleDelete() {
 function handleToggleStatus(user: User) {
   usersStore.toggleUserStatus(user.id)
 }
-
-const isFormValid = computed(() => {
-  const base = 
-    formData.value.email.trim() !== '' &&
-    formData.value.name.trim() !== ''
-  
-  if (showCreateModal.value) {
-    return base && 
-      formData.value.password.length >= 6 &&
-      formData.value.password === formData.value.confirmPassword
-  }
-  
-  return base
-})
 
 const displayedUsers = computed(() => {
   if (activeTab.value === 'admin') {
@@ -185,13 +99,15 @@ function formatDate(dateStr: string | undefined): string {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-foreground">User Management</h1>
+        <h1 class="text-2xl font-bold text-foreground">{{ title }}</h1>
         <p class="text-muted-foreground">Manage admin staff and candidates</p>
       </div>
-      <UiButton variant="gradient" @click="openCreateModal">
-        <Plus class="w-4 h-4" />
-        Add User
-      </UiButton>
+      <NuxtLink to="/users/add">
+        <UiButton variant="gradient">
+          <Plus class="w-4 h-4" />
+          Add User
+        </UiButton>
+      </NuxtLink>
     </div>
 
     <!-- Stats -->
@@ -350,25 +266,27 @@ function formatDate(dateStr: string | undefined): string {
         </div>
         <h3 class="text-lg font-semibold text-foreground mb-2">No Users Found</h3>
         <p class="text-muted-foreground mb-4">Try adjusting your search or filter criteria.</p>
-        <UiButton variant="gradient" @click="openCreateModal">
-          <Plus class="w-4 h-4" />
-          Add User
-        </UiButton>
+        <NuxtLink to="/users/add">
+          <UiButton variant="gradient">
+            <Plus class="w-4 h-4" />
+            Add User
+          </UiButton>
+        </NuxtLink>
       </div>
 
       <!-- Users Table -->
       <div v-else class="rounded-xl border border-border overflow-hidden bg-card/50 backdrop-blur-sm">
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table class="w-full min-w-max">
             <thead>
               <tr class="border-b border-border bg-muted/30">
+                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Actions</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">User</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
                 <th v-if="activeTab === 'admin'" class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Login</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created</th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -377,6 +295,34 @@ function formatDate(dateStr: string | undefined): string {
                 :key="user.id"
                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
               >
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <div class="flex items-center gap-1">
+                    <button
+                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                      title="Toggle Status"
+                      @click="handleToggleStatus(user)"
+                    >
+                      <Power :class="['w-4 h-4', user.isActive ? 'text-score-excellent' : 'text-score-low']" />
+                    </button>
+                    <NuxtLink :to="`/users/${user.id}/edit`">
+                      <button
+                        class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        title="Edit User"
+                        type="button"
+                      >
+                        <Edit class="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </NuxtLink>
+                    <button
+                      class="p-2 rounded-lg hover:bg-score-low/10 transition-colors"
+                      title="Delete User"
+                      @click="openDeleteModal(user)"
+                      :disabled="user.id === authStore.user?.id"
+                    >
+                      <Trash2 :class="['w-4 h-4', user.id === authStore.user?.id ? 'text-muted-foreground/30' : 'text-score-low']" />
+                    </button>
+                  </div>
+                </td>
                 <td class="px-4 py-4">
                   <div class="flex items-center gap-3">
                     <UiAvatar :alt="user.name" size="md" />
@@ -419,130 +365,12 @@ function formatDate(dateStr: string | undefined): string {
                 <td class="px-4 py-4">
                   <span class="text-sm text-muted-foreground">{{ formatDate(user.createdAt) }}</span>
                 </td>
-                <td class="px-4 py-4">
-                  <div class="flex items-center justify-end gap-1">
-                    <button
-                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="Toggle Status"
-                      @click="handleToggleStatus(user)"
-                    >
-                      <Power :class="['w-4 h-4', user.isActive ? 'text-score-excellent' : 'text-score-low']" />
-                    </button>
-                    <button
-                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="Edit User"
-                      @click="openEditModal(user)"
-                    >
-                      <Edit class="w-4 h-4 text-muted-foreground" />
-                    </button>
-                    <button
-                      class="p-2 rounded-lg hover:bg-score-low/10 transition-colors"
-                      title="Delete User"
-                      @click="openDeleteModal(user)"
-                      :disabled="user.id === authStore.user?.id"
-                    >
-                      <Trash2 :class="['w-4 h-4', user.id === authStore.user?.id ? 'text-muted-foreground/30' : 'text-score-low']" />
-                    </button>
-                  </div>
-                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
-
-    <!-- Create/Edit Modal -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition duration-150 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="showCreateModal || showEditModal"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeModals" />
-          
-          <div class="relative w-full max-w-lg bg-card border border-border rounded-2xl overflow-hidden">
-            <!-- Modal Header -->
-            <div class="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border p-6 z-10">
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-foreground">
-                  {{ showCreateModal ? 'Create New User' : 'Edit User' }}
-                </h2>
-                <button
-                  class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                  @click="closeModals"
-                >
-                  <X class="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <!-- Modal Content -->
-            <div class="p-6 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-foreground mb-2">Full Name *</label>
-                <UiInput v-model="formData.name" placeholder="Enter full name" />
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-foreground mb-2">Email *</label>
-                <UiInput v-model="formData.email" type="email" placeholder="Enter email address" />
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-foreground mb-2">Role *</label>
-                <UiSelect
-                  v-model="formData.role"
-                  :options="roleOptions"
-                />
-              </div>
-
-              <div v-if="formData.role !== 'candidate'">
-                <label class="block text-sm font-medium text-foreground mb-2">Department</label>
-                <UiInput v-model="formData.department" placeholder="e.g. Human Resources" />
-              </div>
-
-              <template v-if="showCreateModal">
-                <div>
-                  <label class="block text-sm font-medium text-foreground mb-2">Password *</label>
-                  <UiInput v-model="formData.password" type="password" placeholder="Min. 6 characters" />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-foreground mb-2">Confirm Password *</label>
-                  <UiInput v-model="formData.confirmPassword" type="password" placeholder="Confirm password" />
-                  <p v-if="formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword" class="text-sm text-score-low mt-1">
-                    Passwords do not match
-                  </p>
-                </div>
-              </template>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="sticky bottom-0 bg-card/95 backdrop-blur-sm border-t border-border p-6 z-10">
-              <div class="flex justify-end gap-3">
-                <UiButton variant="outline" @click="closeModals">Cancel</UiButton>
-                <UiButton
-                  variant="gradient"
-                  :disabled="!isFormValid"
-                  @click="showCreateModal ? handleCreate() : handleUpdate()"
-                >
-                  <Check class="w-4 h-4" />
-                  {{ showCreateModal ? 'Create User' : 'Save Changes' }}
-                </UiButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
 
     <!-- Delete Confirmation Modal -->
     <Teleport to="body">

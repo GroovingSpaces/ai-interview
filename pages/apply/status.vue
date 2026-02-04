@@ -90,7 +90,7 @@ onMounted(async () => {
             notes: 'Your application has been received',
           },
           {
-            name: 'AI Resume Screening',
+            name: 'Resume Screening',
             status: 'completed',
             date: '2026-01-11',
             notes: 'Profile match score: 85%',
@@ -102,7 +102,7 @@ onMounted(async () => {
             notes: 'Approved for interview',
           },
           {
-            name: 'AI Interview',
+            name: 'Interview',
             status: 'current',
             date: '2026-01-15',
             notes: 'Scheduled for today',
@@ -136,7 +136,7 @@ onMounted(async () => {
             notes: 'Your application has been received',
           },
           {
-            name: 'AI Resume Screening',
+            name: 'Resume Screening',
             status: 'completed',
             date: '2026-01-06',
             notes: 'Profile match score: 45%',
@@ -164,7 +164,7 @@ onMounted(async () => {
             notes: 'Your application has been received',
           },
           {
-            name: 'AI Resume Screening',
+            name: 'Resume Screening',
             status: 'completed',
             date: '2025-11-21',
             notes: 'Profile match score: 92%',
@@ -176,7 +176,7 @@ onMounted(async () => {
             notes: 'Fast-tracked for interview',
           },
           {
-            name: 'AI Interview',
+            name: 'Interview',
             status: 'completed',
             date: '2025-11-25',
             notes: 'Excellent performance',
