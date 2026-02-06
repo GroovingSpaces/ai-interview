@@ -89,6 +89,9 @@ const formData = ref({
   postalCode: '',
   directSupervisorId: '',
   employeeStatus: '',
+  contractDurationType: '' as '' | '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT',
+  contractStartDate: '',
+  contractEndDate: '',
   workHistory: [] as WorkHistoryItem[],
   education: [] as EducationItem[],
   certifications: [] as CertificationItem[],
@@ -134,6 +137,15 @@ const directSupervisorOptions = computed(() => {
   const filtered = excludeId ? list.filter((o) => o.value !== excludeId) : list
   return [{ value: '', label: tForm('selectSupervisor') }, ...filtered]
 })
+
+// Durasi kontrak: 3 bulan, 6 bulan, 1 tahun, karyawan tetap
+const contractDurationTypeOptions = computed(() => [
+  { value: '', label: tForm('selectContractDuration') || 'Pilih durasi kontrak' },
+  { value: '3_MONTHS', label: tForm('contractDuration3Months') || '3 bulan' },
+  { value: '6_MONTHS', label: tForm('contractDuration6Months') || '6 bulan' },
+  { value: '1_YEAR', label: tForm('contractDuration1Year') || '1 tahun' },
+  { value: 'PERMANENT', label: tForm('contractDurationPermanent') || 'Karyawan tetap' },
+])
 
 // Employee status: PKWTT, PKWT, INTERNSHIP, DAILY_WORKER, FREELANCE
 const employeeStatusOptions = computed(() => [
@@ -198,6 +210,9 @@ function resetForm() {
     postalCode: '',
     directSupervisorId: '',
     employeeStatus: '',
+    contractDurationType: '',
+    contractStartDate: '',
+    contractEndDate: '',
     workHistory: [],
     education: [],
     certifications: [],
@@ -258,6 +273,9 @@ function openEditModal(emp: Employee) {
     postalCode: emp.postalCode ?? '',
     directSupervisorId: emp.directSupervisorId ?? '',
     employeeStatus: emp.employeeStatus ?? '',
+    contractDurationType: (emp.contractDurationType ?? '') as '' | '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT',
+    contractStartDate: emp.contractStartDate ?? '',
+    contractEndDate: emp.contractEndDate ?? '',
     workHistory: emp.workHistory?.length
       ? emp.workHistory.map((w) => ({ ...w, description: w.description ?? '' }))
       : [],
@@ -345,6 +363,8 @@ function handleCreate() {
     certifications: sanitizeCertifications(),
     directSupervisorId: formData.value.directSupervisorId || undefined,
     employeeStatus: formData.value.employeeStatus || undefined,
+    contractStartDate: formData.value.contractStartDate.trim() || undefined,
+    contractDurationType: formData.value.contractDurationType || undefined,
   }
   employeesStore.addEmployee(payload)
   closeModals()
@@ -383,6 +403,11 @@ function handleUpdate() {
     certifications: sanitizeCertifications(),
     directSupervisorId: formData.value.directSupervisorId || undefined,
     employeeStatus: formData.value.employeeStatus || undefined,
+    contractStartDate: formData.value.contractStartDate.trim() || undefined,
+    contractEndDate: formData.value.contractDurationType && formData.value.contractStartDate
+      ? (formData.value.contractDurationType === 'PERMANENT' ? undefined : computedContractEndDate(formData.value.contractStartDate, formData.value.contractDurationType) || undefined)
+      : formData.value.contractEndDate.trim() || undefined,
+    contractDurationType: formData.value.contractDurationType || undefined,
   })
   closeModals()
 }
@@ -440,6 +465,9 @@ onMounted(() => {
         postalCode: '',
         directSupervisorId: '',
         employeeStatus: '',
+        contractDurationType: '',
+        contractStartDate: '',
+        contractEndDate: '',
         workHistory: [],
         education: [],
         certifications: [],
@@ -467,6 +495,54 @@ function formatDate(dateStr: string): string {
     month: 'short',
     day: 'numeric',
   })
+}
+
+function addMonthsToDate(dateStr: string, months: number): string {
+  const d = new Date(dateStr)
+  d.setMonth(d.getMonth() + months)
+  return d.toISOString().slice(0, 10)
+}
+
+function computedContractEndDate(startDate: string, type: string): string {
+  if (!startDate || !type || type === 'PERMANENT') return ''
+  if (type === '3_MONTHS') return addMonthsToDate(startDate, 3)
+  if (type === '6_MONTHS') return addMonthsToDate(startDate, 6)
+  if (type === '1_YEAR') return addMonthsToDate(startDate, 12)
+  return ''
+}
+
+function formatContractPeriod(start?: string, end?: string, durationType?: string): string {
+  if (!start && !end) return '-'
+  const permanentLabel = tForm('contractDurationPermanent') || 'Karyawan tetap'
+  if (durationType === 'PERMANENT' || !end) return start ? `${formatDate(start)} – ${permanentLabel}` : '-'
+  if (start && end) return `${formatDate(start)} – ${formatDate(end)}`
+  if (start) return formatDate(start)
+  return end ? formatDate(end) : '-'
+}
+
+function formatContractDurationLabel(type?: string): string {
+  if (!type) return '-'
+  if (type === '3_MONTHS') return tForm('contractDuration3Months') || '3 bulan'
+  if (type === '6_MONTHS') return tForm('contractDuration6Months') || '6 bulan'
+  if (type === '1_YEAR') return tForm('contractDuration1Year') || '1 tahun'
+  if (type === 'PERMANENT') return tForm('contractDurationPermanent') || 'Karyawan tetap'
+  return '-'
+}
+
+function formatContractDuration(emp: { contractDurationType?: string; contractStartDate?: string; contractEndDate?: string }): string {
+  if (emp.contractDurationType) return formatContractDurationLabel(emp.contractDurationType)
+  if (!emp.contractStartDate || !emp.contractEndDate) return '-'
+  const d1 = new Date(emp.contractStartDate)
+  const d2 = new Date(emp.contractEndDate)
+  if (d2 <= d1) return '-'
+  const months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth())
+  const years = Math.floor(months / 12)
+  const remainderMonths = months % 12
+  if (years === 0) return `${months} ${months === 1 ? (tForm('month') || 'bulan') : (tForm('months') || 'bulan')}`
+  if (remainderMonths === 0) return `${years} ${years === 1 ? (tForm('year') || 'tahun') : (tForm('years') || 'tahun')}`
+  const y = `${years} ${years === 1 ? (tForm('year') || 'tahun') : (tForm('years') || 'tahun')}`
+  const m = `${remainderMonths} ${remainderMonths === 1 ? (tForm('month') || 'bulan') : (tForm('months') || 'bulan')}`
+  return `${y} ${m}`
 }
 </script>
 
@@ -580,13 +656,15 @@ function formatDate(dateStr: string): string {
           <table class="w-full min-w-max">
             <thead>
               <tr class="border-b border-border bg-muted/30">
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Actions</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Employee</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Position</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Join Date</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ tForm('contractPeriod') || 'Masa Kontrak' }}</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ tForm('contractDuration') || 'Durasi Kontrak' }}</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -595,6 +673,51 @@ function formatDate(dateStr: string): string {
                 :key="emp.id"
                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
               >
+                <td class="px-4 py-4">
+                  <div class="flex items-center gap-3">
+                    <UiAvatar :alt="emp.name" size="md" />
+                    <div>
+                      <button
+                        type="button"
+                        class="font-medium text-foreground hover:text-ai-red hover:underline transition-colors text-left"
+                        @click="goToDetail(emp)"
+                      >
+                        {{ emp.name }}
+                      </button>
+                      <p class="text-sm text-muted-foreground">{{ emp.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="text-sm font-mono text-muted-foreground">{{ emp.employeeId }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="text-sm text-muted-foreground">{{ emp.department }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="text-sm text-muted-foreground">{{ emp.position }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="text-sm text-muted-foreground">{{ formatDate(emp.joinDate) }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="text-sm text-muted-foreground">{{ formatContractPeriod(emp.contractStartDate, emp.contractEndDate, emp.contractDurationType) }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="text-sm text-muted-foreground">{{ formatContractDuration(emp) }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span
+                    :class="[
+                      'px-3 py-1 rounded-full text-xs font-medium border',
+                      emp.isActive
+                        ? 'bg-score-excellent/10 text-score-excellent border-score-excellent/30'
+                        : 'bg-score-low/10 text-score-low border-score-low/30',
+                    ]"
+                  >
+                    {{ emp.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
                 <td class="px-4 py-4 whitespace-nowrap">
                   <div class="flex items-center gap-1">
                     <button
@@ -628,48 +751,9 @@ function formatDate(dateStr: string): string {
                     </button>
                   </div>
                 </td>
-                <td class="px-4 py-4">
-                  <div class="flex items-center gap-3">
-                    <UiAvatar :alt="emp.name" size="md" />
-                    <div>
-                      <button
-                        type="button"
-                        class="font-medium text-foreground hover:text-ai-red hover:underline transition-colors text-left"
-                        @click="goToDetail(emp)"
-                      >
-                        {{ emp.name }}
-                      </button>
-                      <p class="text-sm text-muted-foreground">{{ emp.email }}</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm font-mono text-muted-foreground">{{ emp.employeeId }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ emp.department }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ emp.position }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ formatDate(emp.joinDate) }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span
-                    :class="[
-                      'px-3 py-1 rounded-full text-xs font-medium border',
-                      emp.isActive
-                        ? 'bg-score-excellent/10 text-score-excellent border-score-excellent/30'
-                        : 'bg-score-low/10 text-score-low border-score-low/30',
-                    ]"
-                  >
-                    {{ emp.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
               </tr>
             </tbody>
-          </table>
+            </table>
         </div>
       </div>
     </div>
@@ -838,6 +922,22 @@ function formatDate(dateStr: string): string {
                   <div>
                     <label class="block text-sm font-medium text-foreground mb-2">Join Date *</label>
                     <UiInput v-model="formData.joinDate" type="date" placeholder="YYYY-MM-DD" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('contractDuration') || 'Durasi Kontrak' }}</label>
+                    <UiSelect
+                      v-model="formData.contractDurationType"
+                      :options="contractDurationTypeOptions"
+                      :placeholder="tForm('selectContractDuration') || 'Pilih durasi kontrak'"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('contractStartDate') || 'Mulai Kontrak' }}</label>
+                    <UiInput v-model="formData.contractStartDate" type="date" placeholder="YYYY-MM-DD" />
+                  </div>
+                  <div v-if="formData.contractDurationType && formData.contractDurationType !== 'PERMANENT' && formData.contractStartDate">
+                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('contractEndDate') || 'Selesai Kontrak' }}</label>
+                    <p class="text-sm text-muted-foreground py-2">{{ formatDate(computedContractEndDate(formData.contractStartDate, formData.contractDurationType)) }}</p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('employeeStatus') }}</label>

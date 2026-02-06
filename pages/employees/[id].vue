@@ -44,6 +44,8 @@ export interface CareerTimelineItem {
   fromDivision?: string
   toDivision?: string
   notes?: string
+  promotedByLabel?: string
+  documentsCount?: number
 }
 
 definePageMeta({
@@ -83,6 +85,8 @@ const careerTimeline = computed<CareerTimelineItem[]>(() => {
     const toDept = p.toDepartment ?? ''
     const fromDiv = p.fromDivision ?? ''
     const toDiv = p.toDivision ?? ''
+    const promotedByLabel = p.promotedById ? employeesStore.getEmployeeById(p.promotedById)?.name : undefined
+    const documentsCount = p.documents?.length ?? 0
     if (fromDiv && toDiv && fromDiv !== toDiv) {
       items.push({
         type: 'transferDivision',
@@ -96,6 +100,8 @@ const careerTimeline = computed<CareerTimelineItem[]>(() => {
         fromDivision: fromDiv,
         toDivision: toDiv,
         notes: p.notes,
+        promotedByLabel,
+        documentsCount,
       })
     } else if (fromDept && toDept && fromDept !== toDept) {
       items.push({
@@ -110,6 +116,8 @@ const careerTimeline = computed<CareerTimelineItem[]>(() => {
         fromDivision: fromDiv || undefined,
         toDivision: toDiv || undefined,
         notes: p.notes,
+        promotedByLabel,
+        documentsCount,
       })
     } else {
       items.push({
@@ -122,6 +130,8 @@ const careerTimeline = computed<CareerTimelineItem[]>(() => {
         fromDepartment: fromDept || undefined,
         toDepartment: toDept || undefined,
         notes: p.notes,
+        promotedByLabel,
+        documentsCount,
       })
     }
   }
@@ -279,6 +289,44 @@ function formatDate(dateStr: string): string {
   })
 }
 
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
+}
+
+function formatContractPeriod(start?: string, end?: string, durationType?: string): string {
+  if (!start && !end) return '-'
+  const permanentLabel = tForm('contractDurationPermanent') || 'Karyawan tetap'
+  if (durationType === 'PERMANENT' || !end) return start ? `${formatDate(start)} – ${permanentLabel}` : '-'
+  if (start && end) return `${formatDate(start)} – ${formatDate(end)}`
+  if (start) return formatDate(start)
+  return end ? formatDate(end) : '-'
+}
+
+function formatContractDurationLabel(type?: string): string {
+  if (!type) return '-'
+  if (type === '3_MONTHS') return tForm('contractDuration3Months') || '3 bulan'
+  if (type === '6_MONTHS') return tForm('contractDuration6Months') || '6 bulan'
+  if (type === '1_YEAR') return tForm('contractDuration1Year') || '1 tahun'
+  if (type === 'PERMANENT') return tForm('contractDurationPermanent') || 'Karyawan tetap'
+  return '-'
+}
+
+function formatContractDuration(emp: { contractDurationType?: string; contractStartDate?: string; contractEndDate?: string }): string {
+  if (emp.contractDurationType) return formatContractDurationLabel(emp.contractDurationType)
+  if (!emp.contractStartDate || !emp.contractEndDate) return '-'
+  const d1 = new Date(emp.contractStartDate)
+  const d2 = new Date(emp.contractEndDate)
+  if (d2 <= d1) return '-'
+  const months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth())
+  const years = Math.floor(months / 12)
+  const remainderMonths = months % 12
+  if (years === 0) return `${months} ${months === 1 ? (tForm('month') || 'bulan') : (tForm('months') || 'bulan')}`
+  if (remainderMonths === 0) return `${years} ${years === 1 ? (tForm('year') || 'tahun') : (tForm('years') || 'tahun')}`
+  const y = `${years} ${years === 1 ? (tForm('year') || 'tahun') : (tForm('years') || 'tahun')}`
+  const m = `${remainderMonths} ${remainderMonths === 1 ? (tForm('month') || 'bulan') : (tForm('months') || 'bulan')}`
+  return `${y} ${m}`
+}
+
 function goBack() {
   router.push('/employees/database')
 }
@@ -401,6 +449,14 @@ function handleToggleStatus() {
                 <Calendar class="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <span class="text-foreground">Join date: {{ formatDate(employee.joinDate) }}</span>
               </li>
+              <li v-if="employee.contractStartDate || employee.contractEndDate || employee.contractDurationType" class="flex items-start gap-3">
+                <Calendar class="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <span class="text-foreground">{{ tForm('contractPeriod') || 'Masa Kontrak' }}: {{ formatContractPeriod(employee.contractStartDate, employee.contractEndDate, employee.contractDurationType) }}</span>
+              </li>
+              <li v-if="employee.contractDurationType || (employee.contractStartDate && employee.contractEndDate)" class="flex items-start gap-3">
+                <Calendar class="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <span class="text-foreground">{{ tForm('contractDuration') || 'Durasi Kontrak' }}: {{ formatContractDuration(employee) }}</span>
+              </li>
               <li v-if="employee.directSupervisorId" class="flex items-start gap-3">
                 <Users class="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <span class="text-foreground">
@@ -425,6 +481,9 @@ function handleToggleStatus() {
               </li>
               <li v-if="employee.marriageStatus" class="flex items-start gap-3">
                 <span class="text-foreground">{{ tForm('marriageStatus') }}: {{ tForm(employee.marriageStatus.toLowerCase()) }}</span>
+              </li>
+              <li v-if="employee.baseSalary != null && employee.baseSalary > 0" class="flex items-start gap-3">
+                <span class="text-foreground">{{ tForm('salary') || 'Salary' }}: {{ formatCurrency(employee.baseSalary) }}</span>
               </li>
             </ul>
           </div>
@@ -621,6 +680,8 @@ function handleToggleStatus() {
                       <p class="text-sm text-muted-foreground mt-1">
                         {{ item.fromPosition }} → {{ item.toPosition }}
                       </p>
+                      <p v-if="item.promotedByLabel" class="text-xs text-muted-foreground mt-1">{{ tHistory('promotedBy') }}: {{ item.promotedByLabel }}</p>
+                      <p v-if="item.documentsCount && item.documentsCount > 0" class="text-xs text-muted-foreground mt-0.5">{{ item.documentsCount }} {{ tHistory('documents') }}</p>
                       <p v-if="item.notes" class="text-xs text-muted-foreground mt-1">{{ item.notes }}</p>
                     </template>
                     <template v-else-if="(item.type === 'transferDept' || item.type === 'transferDivision') && (item.fromDepartment || item.toDepartment)">

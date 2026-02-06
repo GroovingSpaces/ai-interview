@@ -2,8 +2,9 @@
 import { computed } from 'vue'
 import { useKpiStore } from '~/stores/kpi'
 import { useEmployeesStore } from '~/stores/employees'
+import { useCompanyStore } from '~/stores/company'
 import type { KpiAssignment, KpiStatus } from '~/stores/kpi'
-import { Target, FileCheck, UsersRound, Calendar, Filter, Plus, Edit, FileText, ExternalLink } from 'lucide-vue-next'
+import { Target, FileCheck, UsersRound, Calendar, Filter, Plus, Edit, FileText, ExternalLink, Building2 } from 'lucide-vue-next'
 
 definePageMeta({ middleware: 'admin' })
 
@@ -14,6 +15,25 @@ useHead({ title: () => title.value })
 
 const kpiStore = useKpiStore()
 const employeesStore = useEmployeesStore()
+const companyStore = useCompanyStore()
+
+/** KPI per Department: setiap department punya standar KPI yang berbeda (policies dengan applicableTo department) */
+const departmentKpiList = computed(() => {
+  return companyStore.departments.map((dept) => {
+    const policies = kpiStore.policies.filter(
+      (p) => p.applicableTo === 'department' && p.departmentId === dept.id
+    )
+    const allPolicies = kpiStore.policies.filter((p) => p.applicableTo === 'all')
+    return {
+      id: dept.id,
+      name: dept.name,
+      code: dept.code,
+      departmentPolicies: policies,
+      sharedPolicies: allPolicies,
+      totalCount: policies.length + allPolicies.length,
+    }
+  })
+})
 
 const employeeOptions = computed(() => [
   { value: '', label: t('allEmployees') || 'All Employees' },
@@ -197,11 +217,11 @@ function evaluatePath(group: EmployeePeriodRow) {
         <table class="w-full min-w-[500px] text-sm">
           <thead>
             <tr class="border-b border-border bg-muted/50">
-              <th class="px-4 py-3 text-left font-medium text-foreground">{{ tCommon('actions') || 'Actions' }}</th>
               <th class="px-4 py-3 text-left font-medium text-foreground">{{ t('employee') || 'Employee' }}</th>
               <th class="px-4 py-3 text-left font-medium text-foreground">{{ t('period') || 'Period' }}</th>
               <th class="px-4 py-3 text-left font-medium text-foreground">{{ t('policiesCount') || 'Policies' }}</th>
               <th class="px-4 py-3 text-left font-medium text-foreground">{{ t('statusSummary') || 'Status' }}</th>
+              <th class="px-4 py-3 text-left font-medium text-foreground">{{ tCommon('actions') || 'Actions' }}</th>
             </tr>
           </thead>
           <tbody>
@@ -210,6 +230,12 @@ function evaluatePath(group: EmployeePeriodRow) {
               :key="`${row.employeeId}-${row.period}`"
               class="border-b border-border hover:bg-muted/30"
             >
+              <td class="px-4 py-3 font-medium text-foreground">{{ row.employeeName }}</td>
+              <td class="px-4 py-3 text-foreground">{{ row.period }}</td>
+              <td class="px-4 py-3 text-muted-foreground tabular-nums">{{ row.assignments.length }}</td>
+              <td class="px-4 py-3 text-muted-foreground">
+                {{ row.reviewedCount }} / {{ row.assignments.length }} {{ t('reviewed') || 'Reviewed' }}
+              </td>
               <td class="px-4 py-3">
                 <NuxtLink :to="evaluatePath(row)">
                   <UiButton variant="outline" size="sm">
@@ -218,15 +244,48 @@ function evaluatePath(group: EmployeePeriodRow) {
                   </UiButton>
                 </NuxtLink>
               </td>
-              <td class="px-4 py-3 font-medium text-foreground">{{ row.employeeName }}</td>
-              <td class="px-4 py-3 text-foreground">{{ row.period }}</td>
-              <td class="px-4 py-3 text-muted-foreground tabular-nums">{{ row.assignments.length }}</td>
-              <td class="px-4 py-3 text-muted-foreground">
-                {{ row.reviewedCount }} / {{ row.assignments.length }} {{ t('reviewed') || 'Reviewed' }}
-              </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- 4b. KPI per Department (standar KPI tiap department) -->
+    <div class="rounded-xl border border-border bg-card overflow-hidden">
+      <div class="border-b border-border bg-muted/30 px-5 py-4 flex items-center gap-2">
+        <Building2 class="w-5 h-5 text-ai-red" />
+        <div>
+          <h2 class="text-lg font-semibold text-foreground">{{ t('kpiPerDepartment') || 'KPI per Department' }}</h2>
+          <p class="text-sm text-muted-foreground">{{ t('kpiPerDepartmentDesc') || 'Standar KPI tiap department berbeda; policy "By Dept" hanya berlaku untuk department terkait.' }}</p>
+        </div>
+      </div>
+      <div class="p-5 space-y-4">
+        <div
+          v-for="row in departmentKpiList"
+          :key="row.id"
+          class="rounded-xl border border-border bg-muted/20 p-4"
+        >
+          <div class="flex items-center gap-2 mb-3">
+            <span class="font-semibold text-foreground">{{ row.name }}</span>
+            <span class="text-xs text-muted-foreground">({{ row.code }})</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{{ row.totalCount }} KPI</span>
+          </div>
+          <div class="space-y-2 text-sm">
+            <div v-if="row.departmentPolicies.length > 0">
+              <span class="text-muted-foreground">{{ t('departmentSpecific') || 'Khusus department' }}:</span>
+              <ul class="list-disc list-inside mt-1 text-foreground">
+                <li v-for="p in row.departmentPolicies" :key="p.id">{{ p.name }} ({{ p.weight }}%)</li>
+              </ul>
+            </div>
+            <div v-if="row.sharedPolicies.length > 0">
+              <span class="text-muted-foreground">{{ t('sharedAll') || 'Umum (semua department)' }}:</span>
+              <ul class="list-disc list-inside mt-1 text-foreground">
+                <li v-for="p in row.sharedPolicies" :key="p.id">{{ p.name }} ({{ p.weight }}%)</li>
+              </ul>
+            </div>
+            <div v-if="row.totalCount === 0" class="text-muted-foreground">{{ t('noPoliciesForDept') || 'Belum ada policy untuk department ini.' }}</div>
+          </div>
+        </div>
       </div>
     </div>
 

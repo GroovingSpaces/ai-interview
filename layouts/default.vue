@@ -260,37 +260,7 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 2. Users (staff only) -->
-        <NuxtLink
-          v-if="authStore.isStaff"
-          to="/users"
-          :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
-            isNavActive('/users')
-              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
-              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-          ]"
-          @click="isMobileSidebarOpen = false"
-        >
-          <UserCog
-            :class="[
-              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-              isNavActive('/users') ? 'text-foreground' : 'group-hover:scale-110',
-            ]"
-          />
-          <Transition
-            enter-active-class="transition-opacity duration-200"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-opacity duration-200"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-          >
-            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.users') }}</span>
-          </Transition>
-        </NuxtLink>
-
-        <!-- 3. Employee (expandable) -->
+        <!-- 2. Employee (expandable) -->
         <div class="space-y-1">
           <button
             type="button"
@@ -354,10 +324,6 @@ function closeProfileDropdown() {
                 >
                   <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
                 </Transition>
-                <ChevronRight
-                  v-if="isSidebarOpen && isNavActive(item.href)"
-                  class="w-3.5 h-3.5 ml-auto text-foreground"
-                />
               </NuxtLink>
             </div>
           </Transition>
@@ -571,10 +537,6 @@ function closeProfileDropdown() {
                   >
                     <span v-if="isSidebarOpen" class="text-xs font-medium">{{ $t(item.name) }}</span>
                   </Transition>
-                  <ChevronRight
-                    v-if="isSidebarOpen && isNavActive(item.href)"
-                    class="w-3.5 h-3.5 ml-auto text-foreground"
-                  />
                 </NuxtLink>
               </template>
             </div>
@@ -645,10 +607,6 @@ function closeProfileDropdown() {
                 >
                   <span v-if="isSidebarOpen" class="text-xs font-medium">{{ $t(item.name) }}</span>
                 </Transition>
-                <ChevronRight
-                  v-if="isSidebarOpen && isNavActive(item.href)"
-                  class="w-3.5 h-3.5 ml-auto text-foreground"
-                />
               </NuxtLink>
             </div>
           </Transition>
@@ -680,6 +638,36 @@ function closeProfileDropdown() {
             leave-to-class="opacity-0"
           >
             <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.learningHub') }}</span>
+          </Transition>
+        </NuxtLink>
+
+        <!-- Users (staff only) - bottom -->
+        <NuxtLink
+          v-if="authStore.isStaff"
+          to="/users"
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+            isNavActive('/users')
+              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          ]"
+          @click="isMobileSidebarOpen = false"
+        >
+          <UserCog
+            :class="[
+              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+              isNavActive('/users') ? 'text-foreground' : 'group-hover:scale-110',
+            ]"
+          />
+          <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.users') }}</span>
           </Transition>
         </NuxtLink>
       </nav>

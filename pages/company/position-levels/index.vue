@@ -87,21 +87,21 @@ const isFormValid = computed(() => form.value.name.trim() !== '')
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Level</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Description</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="item in store.positionLevels" :key="item.id" class="border-b border-border last:border-0 hover:bg-muted/30">
+              <td class="px-4 py-3 font-mono">{{ item.level }}</td>
+              <td class="px-4 py-3 font-medium">{{ item.name }}</td>
+              <td class="px-4 py-3 text-sm text-muted-foreground">{{ item.description || '-' }}</td>
               <td class="px-4 py-3 text-left">
                 <button class="p-2 rounded-lg hover:bg-muted/50" title="Edit" @click="openEdit(item)"><Edit class="w-4 h-4" /></button>
                 <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" title="Delete" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
               </td>
-              <td class="px-4 py-3 font-mono">{{ item.level }}</td>
-              <td class="px-4 py-3 font-medium">{{ item.name }}</td>
-              <td class="px-4 py-3 text-sm text-muted-foreground">{{ item.description || '-' }}</td>
             </tr>
           </tbody>
         </table>

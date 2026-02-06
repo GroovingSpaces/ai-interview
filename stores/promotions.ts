@@ -1,6 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+export interface PromotionDocument {
+  id: string
+  name: string
+  fileName?: string
+  fileData?: string
+  uploadedAt: string
+}
+
 export interface Promotion {
   id: string
   employeeId: string
@@ -12,6 +20,9 @@ export interface Promotion {
   toDivision?: string
   promotionDate: string
   notes?: string
+  /** Atasan / orang yang mempromosikan */
+  promotedById?: string
+  documents?: PromotionDocument[]
 }
 
 export const usePromotionsStore = defineStore('promotions', () => {
@@ -25,6 +36,8 @@ export const usePromotionsStore = defineStore('promotions', () => {
       toDepartment: 'Engineering',
       promotionDate: '2024-03-15',
       notes: 'Annual performance review',
+      promotedById: '99',
+      documents: [{ id: 'd1', name: 'Surat Promosi', uploadedAt: '2024-03-14' }],
     },
     {
       id: '2',
@@ -34,6 +47,7 @@ export const usePromotionsStore = defineStore('promotions', () => {
       fromDepartment: 'Human Resources',
       toDepartment: 'Human Resources',
       promotionDate: '2023-09-01',
+      promotedById: '99',
     },
   ])
 

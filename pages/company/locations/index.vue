@@ -100,26 +100,26 @@ const isFormValid = computed(() => form.value.name.trim() !== '')
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Address</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">City</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Country</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Lat / Long</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="item in store.locations" :key="item.id" class="border-b border-border last:border-0 hover:bg-muted/30">
-              <td class="px-4 py-3 text-left">
-                <button class="p-2 rounded-lg hover:bg-muted/50" title="Edit" @click="openEdit(item)"><Edit class="w-4 h-4" /></button>
-                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" title="Delete" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
               <td class="px-4 py-3 font-medium">{{ item.name }}</td>
               <td class="px-4 py-3 text-sm text-muted-foreground">{{ item.address || '-' }}</td>
               <td class="px-4 py-3 text-sm">{{ item.city || '-' }}</td>
               <td class="px-4 py-3 text-sm">{{ item.country || '-' }}</td>
               <td class="px-4 py-3 text-sm font-mono text-muted-foreground">
                 {{ item.latitude != null && item.longitude != null ? `${item.latitude.toFixed(5)}, ${item.longitude.toFixed(5)}` : '-' }}
+              </td>
+              <td class="px-4 py-3 text-left">
+                <button class="p-2 rounded-lg hover:bg-muted/50" title="Edit" @click="openEdit(item)"><Edit class="w-4 h-4" /></button>
+                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" title="Delete" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
               </td>
             </tr>
           </tbody>

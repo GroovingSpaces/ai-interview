@@ -256,7 +256,6 @@ function goToEmployee(id: string) {
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('employee') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('period') }}</th>
               <th class="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">{{ t('baseSalary') }}</th>
@@ -265,6 +264,7 @@ function goToEmployee(id: string) {
               <th class="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">{{ t('pph21') }}</th>
               <th class="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">{{ t('netPay') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('status') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -273,12 +273,6 @@ function goToEmployee(id: string) {
               :key="item.id"
               class="border-b border-border last:border-0 hover:bg-muted/30"
             >
-              <td class="px-4 py-3 whitespace-nowrap">
-                <UiButton variant="ghost" size="sm" class="h-8 w-8 p-0" :title="tCommon('edit')" @click="goToEdit(item)">
-                  <Edit class="w-4 h-4" />
-                </UiButton>
-                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low inline-flex" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
               <td class="px-4 py-3">
                 <button
                   type="button"
@@ -306,6 +300,12 @@ function goToEmployee(id: string) {
                 >
                   {{ statusLabel(item.status) }}
                 </span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <UiButton variant="ghost" size="sm" class="h-8 w-8 p-0" :title="tCommon('edit')" @click="goToEdit(item)">
+                  <Edit class="w-4 h-4" />
+                </UiButton>
+                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low inline-flex" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
               </td>
             </tr>
           </tbody>

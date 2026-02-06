@@ -97,12 +97,14 @@ function goToEmployee(id: string) {
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('employee') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('fromPosition') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('toPosition') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('department') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('promotedBy') || 'Dipromosikan oleh' }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('promotionDate') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('promotionDocuments') || 'Dokumen' }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -111,12 +113,6 @@ function goToEmployee(id: string) {
               :key="item.id"
               class="border-b border-border last:border-0 hover:bg-muted/30"
             >
-              <td class="px-4 py-3 whitespace-nowrap">
-                <NuxtLink :to="`/employees/promotion/${item.id}/edit`">
-                  <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
-                </NuxtLink>
-                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
               <td class="px-4 py-3">
                 <button
                   type="button"
@@ -130,7 +126,15 @@ function goToEmployee(id: string) {
               <td class="px-4 py-3 text-sm text-muted-foreground">{{ item.fromPosition }}</td>
               <td class="px-4 py-3 text-sm font-medium text-foreground">{{ item.toPosition }}</td>
               <td class="px-4 py-3 text-sm">{{ item.toDepartment ?? item.fromDepartment ?? '-' }}</td>
+              <td class="px-4 py-3 text-sm text-muted-foreground">{{ item.promotedById ? getEmployeeName(item.promotedById) : '-' }}</td>
               <td class="px-4 py-3 text-sm">{{ item.promotionDate }}</td>
+              <td class="px-4 py-3 text-sm text-muted-foreground">{{ (item.documents?.length ?? 0) > 0 ? `${item.documents!.length} dokumen` : '-' }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <NuxtLink :to="`/employees/promotion/${item.id}/edit`">
+                  <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
+                </NuxtLink>
+                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
+              </td>
             </tr>
           </tbody>
         </table>

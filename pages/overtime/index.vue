@@ -134,7 +134,6 @@ function handleRejectOvertime(item: Overtime) {
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('employee') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('date') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('startTime') }}</th>
@@ -142,6 +141,7 @@ function handleRejectOvertime(item: Overtime) {
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('hours') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('reason') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('status') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -150,6 +150,17 @@ function handleRejectOvertime(item: Overtime) {
               :key="item.id"
               class="border-b border-border last:border-0 hover:bg-muted/30"
             >
+              <td class="px-4 py-3 font-medium">{{ getEmployeeName(item.employeeId) }}</td>
+              <td class="px-4 py-3 text-sm">{{ item.date }}</td>
+              <td class="px-4 py-3 text-sm">{{ item.startTime }}</td>
+              <td class="px-4 py-3 text-sm">{{ item.endTime }}</td>
+              <td class="px-4 py-3 text-sm">{{ item.hours ?? '-' }}</td>
+              <td class="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{{ item.reason ?? '-' }}</td>
+              <td class="px-4 py-3">
+                <span :class="['px-2 py-1 rounded-full text-xs font-medium border', statusClass(item.status)]">
+                  {{ statusLabel(item.status) }}
+                </span>
+              </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <template v-if="item.status === 'pending' && canApproveSubmission(item.employeeId)">
                   <button class="p-2 rounded-lg hover:bg-score-excellent/10 text-score-excellent" :title="t('approved')" @click="handleApproveOvertime(item)">
@@ -163,17 +174,6 @@ function handleRejectOvertime(item: Overtime) {
                   <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
                 </NuxtLink>
                 <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
-              <td class="px-4 py-3 font-medium">{{ getEmployeeName(item.employeeId) }}</td>
-              <td class="px-4 py-3 text-sm">{{ item.date }}</td>
-              <td class="px-4 py-3 text-sm">{{ item.startTime }}</td>
-              <td class="px-4 py-3 text-sm">{{ item.endTime }}</td>
-              <td class="px-4 py-3 text-sm">{{ item.hours ?? '-' }}</td>
-              <td class="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{{ item.reason ?? '-' }}</td>
-              <td class="px-4 py-3">
-                <span :class="['px-2 py-1 rounded-full text-xs font-medium border', statusClass(item.status)]">
-                  {{ statusLabel(item.status) }}
-                </span>
               </td>
             </tr>
           </tbody>

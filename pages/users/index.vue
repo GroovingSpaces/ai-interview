@@ -280,13 +280,13 @@ function formatDate(dateStr: string | undefined): string {
           <table class="w-full min-w-max">
             <thead>
               <tr class="border-b border-border bg-muted/30">
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Actions</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">User</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
                 <th v-if="activeTab === 'admin'" class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Login</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -295,34 +295,6 @@ function formatDate(dateStr: string | undefined): string {
                 :key="user.id"
                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
               >
-                <td class="px-4 py-4 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <button
-                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="Toggle Status"
-                      @click="handleToggleStatus(user)"
-                    >
-                      <Power :class="['w-4 h-4', user.isActive ? 'text-score-excellent' : 'text-score-low']" />
-                    </button>
-                    <NuxtLink :to="`/users/${user.id}/edit`">
-                      <button
-                        class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                        title="Edit User"
-                        type="button"
-                      >
-                        <Edit class="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    </NuxtLink>
-                    <button
-                      class="p-2 rounded-lg hover:bg-score-low/10 transition-colors"
-                      title="Delete User"
-                      @click="openDeleteModal(user)"
-                      :disabled="user.id === authStore.user?.id"
-                    >
-                      <Trash2 :class="['w-4 h-4', user.id === authStore.user?.id ? 'text-muted-foreground/30' : 'text-score-low']" />
-                    </button>
-                  </div>
-                </td>
                 <td class="px-4 py-4">
                   <div class="flex items-center gap-3">
                     <UiAvatar :alt="user.name" size="md" />
@@ -364,6 +336,34 @@ function formatDate(dateStr: string | undefined): string {
                 </td>
                 <td class="px-4 py-4">
                   <span class="text-sm text-muted-foreground">{{ formatDate(user.createdAt) }}</span>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <div class="flex items-center gap-1">
+                    <button
+                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                      title="Toggle Status"
+                      @click="handleToggleStatus(user)"
+                    >
+                      <Power :class="['w-4 h-4', user.isActive ? 'text-score-excellent' : 'text-score-low']" />
+                    </button>
+                    <NuxtLink :to="`/users/${user.id}/edit`">
+                      <button
+                        class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        title="Edit User"
+                        type="button"
+                      >
+                        <Edit class="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </NuxtLink>
+                    <button
+                      class="p-2 rounded-lg hover:bg-score-low/10 transition-colors"
+                      title="Delete User"
+                      @click="openDeleteModal(user)"
+                      :disabled="user.id === authStore.user?.id"
+                    >
+                      <Trash2 :class="['w-4 h-4', user.id === authStore.user?.id ? 'text-muted-foreground/30' : 'text-score-low']" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

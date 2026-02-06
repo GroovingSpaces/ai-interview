@@ -72,6 +72,9 @@ export interface Employee {
   documents: EmployeeDocument[]
   directSupervisorId?: string
   employeeStatus?: string
+  contractStartDate?: string
+  contractEndDate?: string
+  contractDurationType?: '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT'
 }
 
 export interface CreateEmployeePayload {
@@ -102,6 +105,9 @@ export interface CreateEmployeePayload {
   certifications: CertificationItem[]
   directSupervisorId?: string
   employeeStatus?: string
+  contractStartDate?: string
+  contractEndDate?: string
+  contractDurationType?: '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT'
 }
 
 
@@ -136,6 +142,24 @@ export interface UpdateEmployeePayload {
   documents?: EmployeeDocument[]
   directSupervisorId?: string
   employeeStatus?: string
+  contractStartDate?: string
+  contractEndDate?: string
+  contractDurationType?: '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT'
+}
+
+/** Add months to a date string (YYYY-MM-DD), returns YYYY-MM-DD */
+function addMonthsToDate(dateStr: string, months: number): string {
+  const d = new Date(dateStr)
+  d.setMonth(d.getMonth() + months)
+  return d.toISOString().slice(0, 10)
+}
+
+function contractEndDateFromType(startDate: string, type: '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT'): string | undefined {
+  if (type === 'PERMANENT') return undefined
+  if (type === '3_MONTHS') return addMonthsToDate(startDate, 3)
+  if (type === '6_MONTHS') return addMonthsToDate(startDate, 6)
+  if (type === '1_YEAR') return addMonthsToDate(startDate, 12)
+  return undefined
 }
 
 const emptyWorkHistory = (): WorkHistoryItem => ({
@@ -199,6 +223,10 @@ export const useEmployeesStore = defineStore('employees', () => {
       documents: [],
       directSupervisorId: '99',
       baseSalary: 15000000,
+      contractStartDate: '2025-01-15',
+      contractEndDate: '2026-01-14',
+      contractDurationType: '1_YEAR',
+      divisionId: '1',
     },
     {
       id: '99',
@@ -214,6 +242,9 @@ export const useEmployeesStore = defineStore('employees', () => {
       education: [],
       certifications: [],
       documents: [],
+      contractStartDate: '2025-01-01',
+      contractDurationType: 'PERMANENT',
+      divisionId: '2',
     },
     {
       id: '2',
@@ -231,6 +262,10 @@ export const useEmployeesStore = defineStore('employees', () => {
       certifications: [],
       documents: [],
       directSupervisorId: '99',
+      contractStartDate: '2025-02-01',
+      contractEndDate: '2026-01-31',
+      contractDurationType: '1_YEAR',
+      divisionId: '2',
     },
     {
       id: '3',
@@ -246,6 +281,10 @@ export const useEmployeesStore = defineStore('employees', () => {
       education: [],
       certifications: [],
       documents: [],
+      contractStartDate: '2025-01-10',
+      contractEndDate: '2025-04-09',
+      contractDurationType: '3_MONTHS',
+      divisionId: '1',
     },
     {
       id: '4',
@@ -262,6 +301,10 @@ export const useEmployeesStore = defineStore('employees', () => {
       education: [],
       certifications: [],
       documents: [],
+      contractStartDate: '2025-03-01',
+      contractEndDate: '2025-08-31',
+      contractDurationType: '6_MONTHS',
+      divisionId: '1',
     },
     {
       id: '5',
@@ -276,6 +319,9 @@ export const useEmployeesStore = defineStore('employees', () => {
       education: [],
       certifications: [],
       documents: [],
+      contractStartDate: '2025-01-01',
+      contractEndDate: '2026-01-01',
+      contractDurationType: '1_YEAR',
     },
   ])
 
@@ -361,6 +407,12 @@ export const useEmployeesStore = defineStore('employees', () => {
       documents: [],
       directSupervisorId: payload.directSupervisorId,
       employeeStatus: payload.employeeStatus,
+      contractStartDate: payload.contractStartDate,
+      contractEndDate:
+        payload.contractDurationType && payload.contractStartDate
+          ? contractEndDateFromType(payload.contractStartDate, payload.contractDurationType)
+          : payload.contractEndDate,
+      contractDurationType: payload.contractDurationType,
     }
     employees.value.push(newEmployee)
     return newId

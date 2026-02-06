@@ -102,7 +102,15 @@
     "departments": "Departments",
     "locations": "Locations",
     "modulesCount": "Modules",
-    "progress": "Progress"
+    "progress": "Progress",
+    "contractEndingSoon": "Contract Ending Soon (HRD Reminder)",
+    "contractEndDate": "End Date",
+    "remaining": "Remaining",
+    "noContractEndingSoon": "No contracts ending within 2 months.",
+    "employeesByDivision": "Employees by Division",
+    "employeesByDivisionDesc": "Divisions with the most employees.",
+    "noDivisionData": "No division data.",
+    "noDivision": "Other"
   },
   "users": {
     "title": "Users"
@@ -185,7 +193,9 @@
     "transferDivision": "Division transfer",
     "retired": "Retired / Left",
     "inactive": "Inactive",
-    "noHistory": "No career history recorded."
+    "noHistory": "No career history recorded.",
+    "promotedBy": "Promoted by",
+    "documents": "documents"
   },
   "employeeForm": {
     "directSupervisor": "Direct Supervisor",
@@ -225,7 +235,21 @@
     "single": "Single",
     "married": "Married",
     "divorced": "Divorced",
-    "widowed": "Widowed"
+    "widowed": "Widowed",
+    "contractPeriod": "Contract Period",
+    "contractStartDate": "Contract Start",
+    "contractEndDate": "Contract End",
+    "contractDuration": "Contract Duration",
+    "selectContractDuration": "Select contract duration",
+    "contractDuration3Months": "3 months",
+    "contractDuration6Months": "6 months",
+    "contractDuration1Year": "1 year",
+    "contractDurationPermanent": "Permanent",
+    "year": "year",
+    "years": "years",
+    "month": "month",
+    "months": "months",
+    "salary": "Salary"
   },
   "attendance": {
     "title": "Attendance",
@@ -278,7 +302,12 @@
     "addPromotionModal": "Add Promotion",
     "editPromotionModal": "Edit Promotion",
     "deletePromotion": "Delete Promotion",
-    "deleteConfirm": "Delete promotion record for {name}?"
+    "deleteConfirm": "Delete promotion record for {name}?",
+    "promotedBy": "Promoted by (Supervisor)",
+    "selectPromotedBy": "Select supervisor who promoted",
+    "promotionDocuments": "Promotion Documents",
+    "addDocument": "Add document",
+    "noDocuments": "No documents yet."
   },
   "mutation": {
     "title": "Mutation",
@@ -414,6 +443,11 @@
     "subtitle": "Each employee is assessed against multiple company policies; one KPI assignment per policy per period.",
     "companyPolicies": "Company Policies",
     "policiesDesc": "KPI definitions aligned with company policies",
+    "kpiPerDepartment": "KPI per Department",
+    "kpiPerDepartmentDesc": "Each department has different KPI standards; \"By Dept\" policies apply only to that department.",
+    "departmentSpecific": "Department-specific",
+    "sharedAll": "Shared (all departments)",
+    "noPoliciesForDept": "No policies for this department yet.",
     "policyName": "Policy Name",
     "category": "Category",
     "targetUnit": "Unit",

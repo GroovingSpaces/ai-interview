@@ -143,7 +143,6 @@ function handleDelete() {
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('date') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('employee') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('checkIn') }}</th>
@@ -151,6 +150,7 @@ function handleDelete() {
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ tCommon('status') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('notes') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('approval') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -159,17 +159,6 @@ function handleDelete() {
               :key="item.id"
               class="border-b border-border last:border-0 hover:bg-muted/30"
             >
-              <td class="px-4 py-3 whitespace-nowrap">
-                <template v-if="!item.approved && canApproveSubmission(item.employeeId)">
-                  <button class="p-2 rounded-lg hover:bg-score-excellent/10 text-score-excellent" :title="t('approve')" @click="handleApproveAttendance(item)">
-                    <CheckCircle class="w-4 h-4" />
-                  </button>
-                </template>
-                <NuxtLink :to="`/attendance/${item.id}/edit`">
-                  <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
-                </NuxtLink>
-                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
               <td class="px-4 py-3 text-sm">{{ item.date }}</td>
               <td class="px-4 py-3 font-medium">{{ getEmployeeName(item.employeeId) }}</td>
               <td class="px-4 py-3 text-sm">{{ item.checkIn ?? '-' }}</td>
@@ -193,6 +182,17 @@ function handleDelete() {
                 >
                   {{ t('pendingApproval') }}
                 </span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <template v-if="!item.approved && canApproveSubmission(item.employeeId)">
+                  <button class="p-2 rounded-lg hover:bg-score-excellent/10 text-score-excellent" :title="t('approve')" @click="handleApproveAttendance(item)">
+                    <CheckCircle class="w-4 h-4" />
+                  </button>
+                </template>
+                <NuxtLink :to="`/attendance/${item.id}/edit`">
+                  <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
+                </NuxtLink>
+                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
               </td>
             </tr>
           </tbody>

@@ -214,7 +214,20 @@
     "single": "Lajang",
     "married": "Menikah",
     "divorced": "Cerai",
-    "widowed": "Janda/Duda"
+    "widowed": "Janda/Duda",
+    "contractPeriod": "Masa Kontrak",
+    "contractStartDate": "Mulai Kontrak",
+    "contractEndDate": "Selesai Kontrak",
+    "contractDuration": "Durasi Kontrak",
+    "selectContractDuration": "Pilih durasi kontrak",
+    "contractDuration3Months": "3 bulan",
+    "contractDuration6Months": "6 bulan",
+    "contractDuration1Year": "1 tahun",
+    "contractDurationPermanent": "Karyawan tetap",
+    "year": "tahun",
+    "years": "tahun",
+    "month": "bulan",
+    "months": "bulan"
   },
   "attendance": {
     "title": "Absensi",

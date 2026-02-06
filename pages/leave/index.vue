@@ -143,13 +143,13 @@ function handleReject() {
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Aksi</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Karyawan</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Tipe</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Periode</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Hari</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Alasan</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -158,6 +158,16 @@ function handleReject() {
               :key="item.id"
               class="border-b border-border last:border-0 hover:bg-muted/30"
             >
+              <td class="px-4 py-3 font-medium">{{ getEmployeeName(item.employeeId) }}</td>
+              <td class="px-4 py-3 text-sm">{{ typeLabel(item.type) }}</td>
+              <td class="px-4 py-3 text-sm">{{ item.startDate }} s/d {{ item.endDate }}</td>
+              <td class="px-4 py-3 text-sm">{{ item.days }}</td>
+              <td class="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{{ item.reason }}</td>
+              <td class="px-4 py-3">
+                <span :class="['px-2 py-1 rounded-full text-xs font-medium border', statusClass(item.status)]">
+                  {{ statusLabel(item.status) }}
+                </span>
+              </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <template v-if="item.status === 'pending'">
                   <template v-if="canApproveSubmission(item.employeeId)">
@@ -173,16 +183,6 @@ function handleReject() {
                   </NuxtLink>
                 </template>
                 <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" title="Hapus" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
-              <td class="px-4 py-3 font-medium">{{ getEmployeeName(item.employeeId) }}</td>
-              <td class="px-4 py-3 text-sm">{{ typeLabel(item.type) }}</td>
-              <td class="px-4 py-3 text-sm">{{ item.startDate }} s/d {{ item.endDate }}</td>
-              <td class="px-4 py-3 text-sm">{{ item.days }}</td>
-              <td class="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{{ item.reason }}</td>
-              <td class="px-4 py-3">
-                <span :class="['px-2 py-1 rounded-full text-xs font-medium border', statusClass(item.status)]">
-                  {{ statusLabel(item.status) }}
-                </span>
               </td>
             </tr>
           </tbody>

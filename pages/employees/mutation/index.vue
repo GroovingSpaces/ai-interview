@@ -97,13 +97,13 @@ function goToEmployee(id: string) {
         <table class="w-full min-w-max">
           <thead>
             <tr class="border-b border-border bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('employee') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('fromDepartment') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('toDepartment') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('fromPosition') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('toPosition') }}</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{{ t('mutationDate') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">{{ tCommon('actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -112,12 +112,6 @@ function goToEmployee(id: string) {
               :key="item.id"
               class="border-b border-border last:border-0 hover:bg-muted/30"
             >
-              <td class="px-4 py-3 whitespace-nowrap">
-                <NuxtLink :to="`/employees/mutation/${item.id}/edit`">
-                  <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
-                </NuxtLink>
-                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
-              </td>
               <td class="px-4 py-3">
                 <button
                   type="button"
@@ -133,6 +127,12 @@ function goToEmployee(id: string) {
               <td class="px-4 py-3 text-sm text-muted-foreground">{{ item.fromPosition }}</td>
               <td class="px-4 py-3 text-sm font-medium text-foreground">{{ item.toPosition }}</td>
               <td class="px-4 py-3 text-sm">{{ item.mutationDate }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <NuxtLink :to="`/employees/mutation/${item.id}/edit`">
+                  <button class="p-2 rounded-lg hover:bg-muted/50" :title="tCommon('edit')" type="button"><Edit class="w-4 h-4" /></button>
+                </NuxtLink>
+                <button class="p-2 rounded-lg hover:bg-score-low/10 text-score-low" :title="tCommon('delete')" @click="openDelete(item)"><Trash2 class="w-4 h-4" /></button>
+              </td>
             </tr>
           </tbody>
         </table>

@@ -102,7 +102,15 @@
     "departments": "Departemen",
     "locations": "Lokasi",
     "modulesCount": "Modul",
-    "progress": "Progress"
+    "progress": "Progress",
+    "contractEndingSoon": "Kontrak Akan Berakhir",
+    "contractEndDate": "Tanggal Berakhir",
+    "remaining": "Sisa",
+    "noContractEndingSoon": "Tidak ada kontrak yang berakhir dalam 2 bulan.",
+    "employeesByDivision": "Karyawan per Divisi",
+    "employeesByDivisionDesc": "Divisi dengan jumlah karyawan terbanyak.",
+    "noDivisionData": "Tidak ada data divisi.",
+    "noDivision": "Lainnya"
   },
   "users": {
     "title": "Pengguna"
@@ -185,7 +193,9 @@
     "transferDivision": "Pindah divisi",
     "retired": "Pensiun / Keluar",
     "inactive": "Nonaktif",
-    "noHistory": "Belum ada riwayat karir."
+    "noHistory": "Belum ada riwayat karir.",
+    "promotedBy": "Dipromosikan oleh",
+    "documents": "dokumen"
   },
   "employeeForm": {
     "directSupervisor": "Atasan Langsung",
@@ -225,7 +235,21 @@
     "single": "Lajang",
     "married": "Menikah",
     "divorced": "Cerai",
-    "widowed": "Janda/Duda"
+    "widowed": "Janda/Duda",
+    "contractPeriod": "Masa Kontrak",
+    "contractStartDate": "Mulai Kontrak",
+    "contractEndDate": "Selesai Kontrak",
+    "contractDuration": "Durasi Kontrak",
+    "selectContractDuration": "Pilih durasi kontrak",
+    "contractDuration3Months": "3 bulan",
+    "contractDuration6Months": "6 bulan",
+    "contractDuration1Year": "1 tahun",
+    "contractDurationPermanent": "Karyawan tetap",
+    "year": "tahun",
+    "years": "tahun",
+    "month": "bulan",
+    "months": "bulan",
+    "salary": "Gaji"
   },
   "attendance": {
     "title": "Absensi",
@@ -278,7 +302,12 @@
     "addPromotionModal": "Tambah Promosi",
     "editPromotionModal": "Edit Promosi",
     "deletePromotion": "Hapus Promosi",
-    "deleteConfirm": "Hapus data promosi {name}?"
+    "deleteConfirm": "Hapus data promosi {name}?",
+    "promotedBy": "Dipromosikan oleh (Atasan)",
+    "selectPromotedBy": "Pilih atasan yang mempromosikan",
+    "promotionDocuments": "Dokumen Promosi",
+    "addDocument": "Tambah dokumen",
+    "noDocuments": "Belum ada dokumen."
   },
   "mutation": {
     "title": "Mutasi",
@@ -414,6 +443,11 @@
     "subtitle": "KPI masing-masing karyawan mencakup beberapa kebijakan perusahaan; satu penugasan per kebijakan per periode.",
     "companyPolicies": "Kebijakan Perusahaan",
     "policiesDesc": "Definisi KPI selaras dengan kebijakan perusahaan",
+    "kpiPerDepartment": "KPI per Department",
+    "kpiPerDepartmentDesc": "Standar KPI tiap department berbeda; policy \"By Dept\" hanya berlaku untuk department terkait.",
+    "departmentSpecific": "Khusus department",
+    "sharedAll": "Umum (semua department)",
+    "noPoliciesForDept": "Belum ada policy untuk department ini.",
     "policyName": "Nama Kebijakan",
     "category": "Kategori",
     "targetUnit": "Satuan",
