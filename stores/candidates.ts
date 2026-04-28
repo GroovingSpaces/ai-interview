@@ -8,7 +8,8 @@ export interface Candidate {
   phone: string
   position: string
   department: string
-  stage: 'applied' | 'screening' | 'interview' | 'assessment' | 'offer' | 'hired' | 'rejected'
+  /** Stage key references recruitmentStages master data */
+  stage: string
   aiScore: number
   skills: string[]
   experience: number
@@ -28,8 +29,121 @@ export interface Candidate {
   }
 }
 
+export interface RecruitmentStage {
+  key: string
+  label: string
+  color: string
+  tone: string
+  order: number
+  isFunnel: boolean
+  isTerminal: boolean
+  inPipeline: boolean
+}
+
 export const useCandidatesStore = defineStore('candidates', () => {
+  /**
+   * Master data for recruitment stages.
+   * Add/edit this list to make the funnel dynamic across all recruitment pages.
+   */
+  const recruitmentStages = ref<RecruitmentStage[]>([
+    {
+      key: 'sourcing',
+      label: 'Sourcing',
+      color: '#6366F1',
+      tone: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400',
+      order: 1,
+      isFunnel: true,
+      isTerminal: false,
+      inPipeline: true,
+    },
+    {
+      key: 'applied',
+      label: 'Applied',
+      color: '#3B82F6',
+      tone: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+      order: 2,
+      isFunnel: true,
+      isTerminal: false,
+      inPipeline: true,
+    },
+    {
+      key: 'screening',
+      label: 'Screening',
+      color: '#8B5CF6',
+      tone: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+      order: 3,
+      isFunnel: true,
+      isTerminal: false,
+      inPipeline: true,
+    },
+    {
+      key: 'interview',
+      label: 'Interview',
+      color: '#00D4FF',
+      tone: 'bg-ai-red/10 border-ai-red/30 text-ai-red',
+      order: 4,
+      isFunnel: true,
+      isTerminal: false,
+      inPipeline: true,
+    },
+    {
+      key: 'assessment',
+      label: 'Assessment',
+      color: '#F59E0B',
+      tone: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+      order: 5,
+      isFunnel: true,
+      isTerminal: false,
+      inPipeline: true,
+    },
+    {
+      key: 'offer',
+      label: 'Offer',
+      color: '#10B981',
+      tone: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+      order: 6,
+      isFunnel: true,
+      isTerminal: false,
+      inPipeline: true,
+    },
+    {
+      key: 'hired',
+      label: 'Hiring',
+      color: '#22C55E',
+      tone: 'bg-green-500/10 border-green-500/30 text-green-400',
+      order: 7,
+      isFunnel: true,
+      isTerminal: true,
+      inPipeline: false,
+    },
+    {
+      key: 'rejected',
+      label: 'Rejected',
+      color: '#EF4444',
+      tone: 'bg-red-500/10 border-red-500/30 text-red-400',
+      order: 99,
+      isFunnel: false,
+      isTerminal: true,
+      inPipeline: false,
+    },
+  ])
+
   const candidates = ref<Candidate[]>([
+    // Sourcing candidates (5)
+    {
+      id: '0',
+      name: 'Alif Pratama',
+      email: 'alif.pratama@email.com',
+      phone: '+62 812 1010 1010',
+      position: 'Data Engineer',
+      department: 'Engineering',
+      stage: 'sourcing',
+      aiScore: 75,
+      skills: ['Python', 'SQL', 'Airflow', 'BigQuery'],
+      experience: 3,
+      appliedAt: '2026-01-09',
+      lastActivity: '2026-01-09',
+    },
     // Applied candidates (12)
     {
       id: '1',
@@ -366,21 +480,46 @@ export const useCandidatesStore = defineStore('candidates', () => {
     })
   })
 
-  const stageStats = computed(() => {
-    const stats = {
-      applied: 0,
-      screening: 0,
-      interview: 0,
-      assessment: 0,
-      offer: 0,
-      hired: 0,
-      rejected: 0,
-    }
-    candidates.value.forEach(c => {
-      stats[c.stage]++
+  const stageStats = computed<Record<string, number>>(() => {
+    const stats = Object.fromEntries(recruitmentStages.value.map((stage) => [stage.key, 0])) as Record<string, number>
+    candidates.value.forEach((candidate) => {
+      stats[candidate.stage] = (stats[candidate.stage] ?? 0) + 1
     })
     return stats
   })
+
+  const stageOptions = computed(() =>
+    recruitmentStages.value
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((stage) => ({ value: stage.key, label: stage.label }))
+  )
+
+  const funnelStages = computed(() =>
+    recruitmentStages.value
+      .filter((stage) => stage.isFunnel)
+      .sort((a, b) => a.order - b.order)
+      .map((stage, index) => ({
+        sort: index + 1,
+        key: stage.key,
+        name: stage.label,
+        count: stageStats.value[stage.key] ?? 0,
+        color: stage.color,
+      }))
+  )
+
+  const funnelStageKeys = computed(() =>
+    recruitmentStages.value
+      .filter((stage) => stage.isFunnel)
+      .sort((a, b) => a.order - b.order)
+      .map((stage) => stage.key)
+  )
+
+  const pipelineCount = computed(() =>
+    recruitmentStages.value
+      .filter((stage) => stage.inPipeline)
+      .reduce((total, stage) => total + (stageStats.value[stage.key] ?? 0), 0)
+  )
 
   const averageAiScore = computed(() => {
     const activeCandidates = candidates.value.filter(c => c.stage !== 'rejected')
@@ -394,12 +533,20 @@ export const useCandidatesStore = defineStore('candidates', () => {
     selectedCandidate.value = candidates.value.find(c => c.id === id) || null
   }
 
-  function updateCandidateStage(id: string, stage: Candidate['stage']) {
+  function updateCandidateStage(id: string, stage: string) {
     const candidate = candidates.value.find(c => c.id === id)
     if (candidate) {
       candidate.stage = stage
       candidate.lastActivity = new Date().toISOString().split('T')[0]
     }
+  }
+
+  function getStageByKey(key: string): RecruitmentStage | undefined {
+    return recruitmentStages.value.find((stage) => stage.key === key)
+  }
+
+  function getStageCount(key: string): number {
+    return stageStats.value[key] ?? 0
   }
 
   function addCandidate(candidate: Omit<Candidate, 'id'>) {
@@ -409,7 +556,22 @@ export const useCandidatesStore = defineStore('candidates', () => {
     })
   }
 
+  function updateCandidate(id: string, updates: Partial<Omit<Candidate, 'id'>>): boolean {
+    const i = candidates.value.findIndex((c) => c.id === id)
+    if (i === -1) return false
+    candidates.value[i] = { ...candidates.value[i], ...updates }
+    return true
+  }
+
+  function deleteCandidate(id: string): boolean {
+    const i = candidates.value.findIndex((c) => c.id === id)
+    if (i === -1) return false
+    candidates.value.splice(i, 1)
+    return true
+  }
+
   return {
+    recruitmentStages,
     candidates,
     selectedCandidate,
     searchQuery,
@@ -417,10 +579,18 @@ export const useCandidatesStore = defineStore('candidates', () => {
     departmentFilter,
     filteredCandidates,
     stageStats,
+    stageOptions,
+    funnelStages,
+    funnelStageKeys,
+    pipelineCount,
     averageAiScore,
+    getStageByKey,
+    getStageCount,
     selectCandidate,
     updateCandidateStage,
     addCandidate,
+    updateCandidate,
+    deleteCandidate,
   }
 })
 

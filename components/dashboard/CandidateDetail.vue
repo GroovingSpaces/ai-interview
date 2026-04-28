@@ -24,6 +24,7 @@ function closeDetail() {
 }
 
 const stageActions = {
+  sourcing: 'Convert to Applied',
   applied: 'Start Screening',
   screening: 'Schedule Interview',
   interview: 'Send Assessment',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Sun, Moon, LogOut, User, Lock, Eye, EyeOff, X, LogIn, UserPlus, Loader2, AlertCircle, Mail, Phone, MapPin } from 'lucide-vue-next'
 import { useTheme } from '~/composables/useTheme'
 import { useAuthStore } from '~/stores/auth'
@@ -7,6 +7,10 @@ import { useAuthStore } from '~/stores/auth'
 const { isDark, toggleTheme } = useTheme()
 const authStore = useAuthStore()
 const router = useRouter()
+
+onMounted(() => {
+  authStore.initAuth()
+})
 
 // Modal states
 const showLoginModal = ref(false)
@@ -172,8 +176,8 @@ const isRegisterFormValid = computed(() => {
         </NuxtLink>
 
         <nav class="hidden md:flex items-center gap-6">
-          <NuxtLink to="/apply" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Apply Now
+          <NuxtLink to="/portal-login" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Staff Portal
           </NuxtLink>
           <NuxtLink to="/apply/positions" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Open Positions

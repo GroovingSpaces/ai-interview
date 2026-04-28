@@ -215,6 +215,11 @@ export const useLmsStore = defineStore('lms', () => {
     return modules.value.find(m => m.id === id)
   }
 
+  function getLesson(moduleId: string, lessonId: string): Lesson | undefined {
+    const mod = getModuleById(moduleId)
+    return mod?.lessons.find(l => l.id === lessonId)
+  }
+
   /** Learning methods (lesson types) summary per module: { video: n, reading: n, ... } */
   function getLearningMethodsByModule(moduleId: string): Record<Lesson['type'], number> {
     const mod = getModuleById(moduleId)
@@ -346,6 +351,24 @@ export const useLmsStore = defineStore('lms', () => {
     return aiQuiz
   }
 
+  function addModule(payload: Omit<LearningModule, 'id'>): string {
+    const id = String(Date.now())
+    modules.value.push({ ...payload, id })
+    return id
+  }
+  function updateModule(id: string, updates: Partial<Omit<LearningModule, 'id'>>): boolean {
+    const i = modules.value.findIndex((m) => m.id === id)
+    if (i === -1) return false
+    modules.value[i] = { ...modules.value[i], ...updates }
+    return true
+  }
+  function deleteModule(id: string): boolean {
+    const i = modules.value.findIndex((m) => m.id === id)
+    if (i === -1) return false
+    modules.value.splice(i, 1)
+    return true
+  }
+
   return {
     modules,
     learningPaths,
@@ -357,6 +380,7 @@ export const useLmsStore = defineStore('lms', () => {
     totalLearningTime,
     earnedBadges,
     getModuleById,
+    getLesson,
     getLearningMethodsByModule,
     startModule,
     completeLesson,
@@ -364,6 +388,9 @@ export const useLmsStore = defineStore('lms', () => {
     answerQuizQuestion,
     submitQuiz,
     generateAIQuiz,
+    addModule,
+    updateModule,
+    deleteModule,
   }
 })
 

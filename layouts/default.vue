@@ -4,10 +4,9 @@ import {
   LayoutDashboard,
   Users,
   MonitorPlay,
+  Bot,
   GraduationCap,
-  FileText,
   Settings,
-  Settings2,
   Bell,
   Menu,
   X,
@@ -28,26 +27,48 @@ import {
   Layers,
   TrendingUp,
   ArrowRightLeft,
-  Banknote,
   MapPin,
   GitBranch,
   CalendarCheck,
   CalendarOff,
   Clock,
   Target,
+  CalendarRange,
+  FileBarChart,
+  Megaphone,
+  Calendar,
+  CalendarDays,
+  AlertTriangle,
+  ShieldCheck,
+  DollarSign,
 } from 'lucide-vue-next'
 import { useTheme } from '~/composables/useTheme'
+import { useAiChatbot } from '~/composables/useAiChatbot'
 import { useAuthStore } from '~/stores/auth'
 import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const { t, locale, setLocale } = useI18n()
 const router = useRouter()
+const { toggleOpen: toggleAiChatbot, isOpen: aiChatbotOpen } = useAiChatbot()
 const isSidebarOpen = ref(true)
 const isMobileSidebarOpen = ref(false)
 const recruitmentMenuOpen = ref(false)
 const companyMenuOpen = ref(false)
+const managementMenuOpen = ref(false)
 const employeeMenuOpen = ref(false)
+const timeAttendanceMenuOpen = ref(false)
+const leavePermissionMenuOpen = ref(false)
+const performanceMenuOpen = ref(false)
+const compensationBenefitsMenuOpen = ref(false)
+const talentAcquisitionMenuOpen = ref(false)
+const workforcePlanningMenuOpen = ref(false)
+const successionMenuOpen = ref(false)
+const learningMenuOpen = ref(false)
+const insightsMenuOpen = ref(false)
+const hrServiceMenuOpen = ref(false)
+const tasksMenuOpen = ref(false)
+const wfmMenuOpen = ref(false)
 const profileDropdownOpen = ref(false)
 
 // Use theme composable for persistent theme switching
@@ -56,7 +77,43 @@ const { isDark, toggleTheme } = useTheme()
 // Auth store
 const authStore = useAuthStore()
 
+/** Role-based nav: admin/c_level=all, hr/manager=HCM no users, recruiter=recruitment+announcements+lms, supervisor/staff=attendance+leave+overtime+shifts+announcements+lms */
+type NavRole = 'admin' | 'hr' | 'recruiter' | 'staff' | 'supervisor' | 'manager' | 'c_level'
+const navByRole = computed(() => {
+  const role = (authStore.user?.role ?? 'admin') as NavRole
+  const canAccessUsers = role === 'admin' || role === 'c_level'
+  return {
+    users: canAccessUsers,
+    employee: canAccessUsers,
+    timeAttendance: canAccessUsers,
+    leavePermission: canAccessUsers,
+    performance: canAccessUsers,
+    compensationBenefits: canAccessUsers,
+    talentAcquisition: canAccessUsers,
+    workforcePlanning: canAccessUsers,
+    succession: canAccessUsers,
+    learning: canAccessUsers,
+    insights: canAccessUsers,
+    hrService: canAccessUsers,
+    tasks: canAccessUsers,
+    attendance: false,
+    leave: false,
+    overtime: false,
+    shifts: false,
+    kpi: false,
+    workforceReports: false,
+    announcements: false,
+    wfm: false,
+    recruitment: false,
+    company: false,
+    learningHub: false,
+  }
+})
+
 const profileDropdownRef = ref<HTMLElement | null>(null)
+
+/** Avoid hydration mismatch: user comes from localStorage (client-only). Keep server and initial client render identical. */
+const isClient = ref(false)
 
 function handleProfileClickOutside(e: MouseEvent) {
   if (profileDropdownRef.value && !profileDropdownRef.value.contains(e.target as Node)) {
@@ -65,6 +122,7 @@ function handleProfileClickOutside(e: MouseEvent) {
 }
 
 onMounted(() => {
+  isClient.value = true
   authStore.initAuth()
   document.addEventListener('click', handleProfileClickOutside)
 })
@@ -75,20 +133,123 @@ onUnmounted(() => {
 // Sub-menu under Recruitment (name = i18n key)
 const recruitmentSubMenu = [
   { name: 'nav.recruitmentDashboard', href: '/recruitment', icon: LayoutDashboard, external: false },
+  { name: 'nav.recruitmentFunnel', href: '/recruitment/funnel', icon: Layers, external: false },
   { name: 'nav.candidates', href: '/candidates', icon: Users, external: false },
   { name: 'nav.positions', href: '/positions', icon: Briefcase, external: false },
   { name: 'nav.aiInterview', href: '/interview', icon: MonitorPlay, external: false },
-  { name: 'nav.applications', href: '/apply', icon: FileText, external: true },
+]
+
+// Sub-menu under Employee (label = tampilan, name = untuk i18n/currentPage)
+const managementSubMenu = [
+  { name: 'nav.users', label: 'Users', href: '/users', icon: UserCog, external: false },
+  { name: 'nav.roles', label: 'Roles', href: '/management/roles', icon: ShieldCheck, external: false },
 ]
 
 // Sub-menu under Employee (label = tampilan, name = untuk i18n/currentPage)
 const employeeSubMenu = [
   { name: 'nav.employeeDatabase', label: 'Database', href: '/employees/database', icon: UsersRound, external: false },
-  { name: 'nav.promotion', label: 'Promotion', href: '/employees/promotion', icon: TrendingUp, external: false },
-  { name: 'nav.mutation', label: 'Mutation', href: '/employees/mutation', icon: ArrowRightLeft, external: false },
-  { name: 'nav.initialPayroll', label: 'Initial Payroll', href: '/employees/payroll/initial', icon: Settings2, external: false },
-  { name: 'nav.generatePayroll', label: 'Generate Payroll', href: '/employees/payroll', icon: Banknote, external: false },
-  { name: 'nav.retired', label: 'Retired', href: '/employees/retired', icon: UserX, external: false },
+  { name: 'nav.employeeContracts', label: 'Contracts', href: '/employees/contracts', icon: ClipboardList, external: false },
+  { name: 'nav.employeeDocuments', label: 'Documents', href: '/employees/documents', icon: ClipboardList, external: false },
+]
+
+// Sub-menu under Time & Attendance
+const timeAttendanceSubMenu = [
+  { name: 'nav.myAttendance', label: 'My Attendance', href: '/time-attendance/my-attendance', icon: CalendarCheck, external: false },
+  { name: 'nav.teamAttendance', label: 'Team Attendance', href: '/time-attendance/team-attendance', icon: Users, external: false },
+  { name: 'nav.shiftSchedule', label: 'Shift Schedule', href: '/time-attendance/shift-schedule', icon: CalendarRange, external: false },
+  { name: 'nav.taOvertime', label: 'Overtime', href: '/time-attendance/overtime', icon: Clock, external: false },
+  { name: 'nav.attendanceReports', label: 'Attendance Reports', href: '/time-attendance/attendance-reports', icon: FileBarChart, external: false },
+]
+
+// Sub-menu under Leave & Permission
+const leavePermissionSubMenu = [
+  { name: 'nav.myLeave', label: 'My Leave', href: '/leave-permission/my-leave', icon: CalendarOff, external: false },
+  { name: 'nav.leaveRequest', label: 'Leave Request', href: '/leave-permission/leave-request', icon: ClipboardList, external: false },
+  { name: 'nav.businessTrip', label: 'Business Trip', href: '/leave-permission/business-trip', icon: Briefcase, external: false },
+  { name: 'nav.leaveReports', label: 'Leave Reports', href: '/leave-permission/leave-reports', icon: FileBarChart, external: false },
+]
+
+// Sub-menu under Performance
+const performanceSubMenu = [
+  { name: 'nav.myKpi', label: 'My KPI', href: '/performance/my-kpi', icon: Target, external: false },
+  { name: 'nav.assignKpi', label: 'Assign KPI', href: '/performance/assign-kpi', icon: Target, external: false },
+  { name: 'nav.selfAssessment', label: 'Self-Assessment', href: '/performance/self-assessment', icon: UserCheck, external: false },
+  { name: 'nav.teamReview', label: 'Team Review', href: '/performance/team-review', icon: Users, external: false },
+  { name: 'nav.calibration', label: 'Calibration', href: '/performance/calibration', icon: Layers, external: false },
+  { name: 'nav.pip', label: 'PIP', href: '/performance/pip', icon: AlertTriangle, external: false },
+  { name: 'nav.nineGridBox', label: '9-Grid Box', href: '/performance/9-grid-box', icon: GitBranch, external: false },
+  { name: 'nav.performancePromotion', label: 'Promotion', href: '/performance/promotion', icon: TrendingUp, external: false },
+  { name: 'nav.performanceMutation', label: 'Mutation', href: '/performance/mutation', icon: ArrowRightLeft, external: false },
+]
+
+// Sub-menu under Compensation & Benefits
+const compensationBenefitsSubMenu = [
+  { name: 'nav.payslip', label: 'Payslip', href: '/compensation-benefits/payslip', icon: FileBarChart, external: false },
+  { name: 'nav.benefits', label: 'Benefits', href: '/compensation-benefits/benefits', icon: ShieldCheck, external: false },
+  { name: 'nav.bonusIncentive', label: 'Bonus & Incentive', href: '/compensation-benefits/bonus-incentive', icon: DollarSign, external: false },
+  { name: 'nav.compAdjustment', label: 'Comp Adjustment', href: '/compensation-benefits/comp-adjustment', icon: TrendingUp, external: false },
+  { name: 'nav.payrollRun', label: 'Payroll Run', href: '/compensation-benefits/payroll-run', icon: Clock, external: false },
+]
+
+// Sub-menu under Talent Acquisition
+const talentAcquisitionSubMenu = [
+  { name: 'nav.requisitions', label: 'Requisitions', href: '/talent-acquisition/requisitions', icon: ClipboardList, external: false },
+  { name: 'nav.jobOpenings', label: 'Job Openings', href: '/talent-acquisition/job-openings', icon: Briefcase, external: false },
+  { name: 'nav.talentCandidates', label: 'Candidate', href: '/talent-acquisition/candidates', icon: Users, external: false },
+]
+
+// Sub-menu under Workforce Planning
+const workforcePlanningSubMenu = [
+  { name: 'nav.headcountForecast', label: 'Headcount Forecast', href: '/workforce-planning/headcount-forecast', icon: TrendingUp, external: false },
+  { name: 'nav.demandTracker', label: 'Demand Tracker', href: '/workforce-planning/demand-tracker', icon: ClipboardList, external: false },
+  { name: 'nav.resourceAllocation', label: 'Resource Allocation', href: '/workforce-planning/resource-allocation', icon: UsersRound, external: false },
+]
+
+// Sub-menu under Succession
+const successionSubMenu = [
+  { name: 'nav.keyRoles', label: 'Key Roles', href: '/succession/key-roles', icon: ShieldCheck, external: false },
+  { name: 'nav.successorPool', label: 'Successor Pool', href: '/succession/successor-pool', icon: UserCheck, external: false },
+]
+
+// Sub-menu under Learning
+const learningSubMenu = [
+  { name: 'nav.myLearning', label: 'My Learning', href: '/learning/my-learning', icon: GraduationCap, external: false },
+  { name: 'nav.courseCatalog', label: 'Course Catalog', href: '/learning/course-catalog', icon: ClipboardList, external: false },
+  { name: 'nav.certifications', label: 'Certifications', href: '/learning/certifications', icon: ShieldCheck, external: false },
+  { name: 'nav.training', label: 'Training', href: '/learning/training', icon: CalendarDays, external: false },
+]
+
+// Sub-menu under Insights
+const insightsSubMenu = [
+  { name: 'nav.burnoutIndicator', label: 'Burnout Indicator', href: '/insights/burnout-indicator', icon: AlertTriangle, external: false },
+  { name: 'nav.attritionForecast', label: 'Attrition Forecast', href: '/insights/attrition-forecast', icon: TrendingUp, external: false },
+  { name: 'nav.trainingSuggestions', label: 'Training Suggestions', href: '/insights/training-suggestions', icon: GraduationCap, external: false },
+]
+
+// Sub-menu under HR Service
+const hrServiceSubMenu = [
+  { name: 'nav.submitRequest', label: 'Submit Request', href: '/hr-service/submit-request', icon: ClipboardList, external: false },
+  { name: 'nav.myTickets', label: 'My Tickets', href: '/hr-service/my-tickets', icon: UserCheck, external: false },
+  { name: 'nav.serviceConsole', label: 'Service Console', href: '/hr-service/service-console', icon: Settings, external: false },
+]
+
+// Sub-menu under Tasks
+const tasksSubMenu = [
+  { name: 'nav.myTasks', label: 'My Tasks', href: '/tasks/my-tasks', icon: ClipboardList, external: false },
+  { name: 'nav.assignTask', label: 'Assign Task', href: '/tasks/assign-task', icon: Users, external: false },
+  { name: 'nav.evidenceReview', label: 'Evidence Review', href: '/tasks/evidence-review', icon: ShieldCheck, external: false },
+]
+
+// Sub-menu under WFM
+const wfmSubMenu = [
+  { name: 'nav.wfmDashboard', href: '/wfm', icon: LayoutDashboard, external: false },
+  { name: 'nav.wfmShiftSwap', href: '/wfm/shift-swap', icon: ArrowRightLeft, external: false },
+  { name: 'nav.wfmAvailability', href: '/wfm/availability', icon: Users, external: false },
+  { name: 'nav.wfmHolidays', href: '/wfm/holidays', icon: Calendar, external: false },
+  { name: 'nav.wfmCompliance', href: '/wfm/compliance', icon: ShieldCheck, external: false },
+  { name: 'nav.wfmOnboarding', href: '/wfm/onboarding', icon: ClipboardList, external: false },
+  { name: 'nav.wfmLeaveCalendar', href: '/wfm/leave-calendar', icon: CalendarCheck, external: false },
+  { name: 'nav.wfmLaborCost', href: '/wfm/labor-cost', icon: DollarSign, external: false },
 ]
 
 // Sub-menu under Company
@@ -98,24 +259,26 @@ const companySubMenu = [
   { name: 'nav.positionLevel', href: '/company/position-levels', icon: TrendingUp, external: false },
   { name: 'nav.location', href: '/company/locations', icon: MapPin, external: false },
   { name: 'nav.organization', href: '/company/organizations', icon: GitBranch, external: false },
+  { name: 'nav.approvalHierarchy', href: '/company/approval-hierarchy', icon: Settings, external: false },
 ]
 
-// Urutan: Dashboard, Users, Employee, Absensi, Cuti, Recruitment sub, Company sub, Learning Hub
+// Urutan: Dashboard, then role-filtered items (for pageTitle sync)
 const allNavItems = computed(() => {
-  const items: { name: string; href: string; icon: unknown; external: boolean }[] = [
-    { name: 'nav.dashboard', href: '/', icon: LayoutDashboard, external: false },
-  ]
-  if (authStore.isStaff) {
-    items.push({ name: 'nav.users', href: '/users', icon: UserCog, external: false })
-  }
-  items.push(...employeeSubMenu)
-  items.push({ name: 'nav.attendance', href: '/attendance', icon: CalendarCheck, external: false })
-  items.push({ name: 'nav.cuti', href: '/leave', icon: CalendarOff, external: false })
-  items.push({ name: 'nav.overtime', href: '/overtime', icon: Clock, external: false })
-  items.push({ name: 'nav.kpi', href: '/kpi', icon: Target, external: false })
-  items.push(...recruitmentSubMenu)
-  items.push(...companySubMenu)
-  items.push({ name: 'nav.learningHub', href: '/lms', icon: GraduationCap, external: false })
+  if (!navByRole.value.users) return []
+  const items: { name: string; href: string; icon: unknown; external: boolean }[] = []
+  if (navByRole.value.users) items.push(...managementSubMenu)
+  if (navByRole.value.employee) items.push(...employeeSubMenu)
+  if (navByRole.value.timeAttendance) items.push(...timeAttendanceSubMenu)
+  if (navByRole.value.leavePermission) items.push(...leavePermissionSubMenu)
+  if (navByRole.value.performance) items.push(...performanceSubMenu)
+  if (navByRole.value.compensationBenefits) items.push(...compensationBenefitsSubMenu)
+  if (navByRole.value.talentAcquisition) items.push(...talentAcquisitionSubMenu)
+  if (navByRole.value.workforcePlanning) items.push(...workforcePlanningSubMenu)
+  if (navByRole.value.succession) items.push(...successionSubMenu)
+  if (navByRole.value.learning) items.push(...learningSubMenu)
+  if (navByRole.value.insights) items.push(...insightsSubMenu)
+  if (navByRole.value.hrService) items.push(...hrServiceSubMenu)
+  if (navByRole.value.tasks) items.push(...tasksSubMenu)
   return items
 })
 
@@ -124,12 +287,71 @@ const pageTitleState = useState<string>('pageTitleModule', () => 'dashboard')
 const navKeyToModule: Record<string, string> = {
   cuti: 'leave',
   recruitmentDashboard: 'recruitment',
-  employeeDatabase: 'employee',
+  recruitmentFunnel: 'recruitmentFunnel',
+  employeeDatabase: 'employeeDatabase',
+  employeeContracts: 'employeeContracts',
+  employeeDocuments: 'employeeDocuments',
+  promotion: 'promotion',
   mutation: 'mutation',
-  payroll: 'payroll',
-  initialPayroll: 'initialPayroll',
-  generatePayroll: 'generatePayroll',
+  myAttendance: 'myAttendance',
+  teamAttendance: 'teamAttendance',
+  shiftSchedule: 'shiftSchedule',
+  taOvertime: 'taOvertime',
+  attendanceReports: 'attendanceReports',
+  myLeave: 'myLeave',
+  leaveRequest: 'leaveRequest',
+  businessTrip: 'businessTrip',
+  leaveReports: 'leaveReports',
+  myKpi: 'myKpi',
+  assignKpi: 'assignKpi',
+  selfAssessment: 'selfAssessment',
+  teamReview: 'teamReview',
+  calibration: 'calibration',
+  pip: 'pip',
+  nineGridBox: 'nineGridBox',
+  performancePromotion: 'performancePromotion',
+  performanceMutation: 'performanceMutation',
+  payslip: 'payslip',
+  benefits: 'benefits',
+  bonusIncentive: 'bonusIncentive',
+  compAdjustment: 'compAdjustment',
+  payrollRun: 'payrollRun',
+  requisitions: 'requisitions',
+  jobOpenings: 'jobOpenings',
+  talentCandidates: 'talentCandidates',
+  talentRecruitment: 'talentRecruitment',
+  headcountForecast: 'headcountForecast',
+  demandTracker: 'demandTracker',
+  resourceAllocation: 'resourceAllocation',
+  keyRoles: 'keyRoles',
+  successorPool: 'successorPool',
+  myLearning: 'myLearning',
+  courseCatalog: 'courseCatalog',
+  certifications: 'certifications',
+  training: 'training',
+  burnoutIndicator: 'burnoutIndicator',
+  attritionForecast: 'attritionForecast',
+  trainingSuggestions: 'trainingSuggestions',
+  submitRequest: 'submitRequest',
+  myTickets: 'myTickets',
+  serviceConsole: 'serviceConsole',
+  myTasks: 'myTasks',
+  assignTask: 'assignTask',
+  evidenceReview: 'evidenceReview',
+  roles: 'roles',
   kpi: 'kpi',
+  shifts: 'shifts',
+  workforceReports: 'workforceReports',
+  announcements: 'announcements',
+  wfmDashboard: 'wfm',
+  wfmShiftSwap: 'wfmShiftSwap',
+  wfmAvailability: 'wfmAvailability',
+  wfmHolidays: 'wfmHolidays',
+  wfmCompliance: 'wfmCompliance',
+  wfmOnboarding: 'wfmOnboarding',
+  wfmLeaveCalendar: 'wfmLeaveCalendar',
+  wfmLaborCost: 'wfmLaborCost',
+  approvalHierarchy: 'approvalHierarchy',
 }
 watch(
   () => route.path,
@@ -147,11 +369,15 @@ const { title: currentPage } = usePageTitle()
 // Helper to check if a nav item is active
 function isNavActive(href: string): boolean {
   if (href === '/') return route.path === '/'
+  // Untuk hub seperti /wfm: hanya aktif saat path tepat /wfm, bukan /wfm/...
+  if (href === '/wfm') return route.path === '/wfm'
+  // Recruitment dashboard should only be active on exact route, not child routes (e.g. /recruitment/funnel)
+  if (href === '/recruitment') return route.path === '/recruitment'
   return route.path === href || route.path.startsWith(href + '/')
 }
 
 const userInitials = computed(() => {
-  if (!authStore.user?.name) return 'U'
+  if (!isClient.value || !authStore.user?.name) return 'U'
   return authStore.user.name
     .split(' ')
     .map(n => n[0])
@@ -176,6 +402,11 @@ function handleLogout() {
 
 function closeProfileDropdown() {
   profileDropdownOpen.value = false
+}
+
+function goSettings() {
+  profileDropdownOpen.value = false
+  router.push('/settings')
 }
 </script>
 
@@ -260,8 +491,8 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 2. Employee (expandable) -->
-        <div class="space-y-1">
+        <!-- 2. Employee (expandable) - admin, hr -->
+        <div v-if="navByRole.employee" class="space-y-1">
           <button
             type="button"
             :class="[
@@ -329,8 +560,512 @@ function closeProfileDropdown() {
           </Transition>
         </div>
 
-        <!-- 4. Absensi -->
+        <!-- 3. Time & Attendance (expandable) -->
+        <div v-if="navByRole.timeAttendance" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="timeAttendanceMenuOpen = !timeAttendanceMenuOpen"
+          >
+            <CalendarCheck class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.timeAttendance') }}</span>
+            </Transition>
+            <component
+              :is="timeAttendanceMenuOpen ? ChevronDown : ChevronRight"
+              class="w-4 h-4 flex-shrink-0 transition-transform"
+            />
+          </button>
+          <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 max-h-0"
+            enter-to-class="opacity-100 max-h-[500px]"
+            leave-active-class="transition-all duration-200 ease-out"
+            leave-from-class="opacity-100 max-h-[500px]"
+            leave-to-class="opacity-0 max-h-0"
+          >
+            <div v-show="timeAttendanceMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in timeAttendanceSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href)
+                    ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component
+                  :is="item.icon"
+                  :class="[
+                    'w-4 h-4 flex-shrink-0 transition-transform duration-200',
+                    isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110',
+                  ]"
+                />
+                <Transition
+                  enter-active-class="transition-opacity duration-200"
+                  enter-from-class="opacity-0"
+                  enter-to-class="opacity-100"
+                  leave-active-class="transition-opacity duration-200"
+                  leave-from-class="opacity-100"
+                  leave-to-class="opacity-0"
+                >
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 4. Leave & Permission (expandable) -->
+        <div v-if="navByRole.leavePermission" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="leavePermissionMenuOpen = !leavePermissionMenuOpen"
+          >
+            <CalendarOff class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.leavePermission') }}</span>
+            </Transition>
+            <component
+              :is="leavePermissionMenuOpen ? ChevronDown : ChevronRight"
+              class="w-4 h-4 flex-shrink-0 transition-transform"
+            />
+          </button>
+          <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 max-h-0"
+            enter-to-class="opacity-100 max-h-[500px]"
+            leave-active-class="transition-all duration-200 ease-out"
+            leave-from-class="opacity-100 max-h-[500px]"
+            leave-to-class="opacity-0 max-h-0"
+          >
+            <div v-show="leavePermissionMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in leavePermissionSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href)
+                    ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component
+                  :is="item.icon"
+                  :class="[
+                    'w-4 h-4 flex-shrink-0 transition-transform duration-200',
+                    isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110',
+                  ]"
+                />
+                <Transition
+                  enter-active-class="transition-opacity duration-200"
+                  enter-from-class="opacity-0"
+                  enter-to-class="opacity-100"
+                  leave-active-class="transition-opacity duration-200"
+                  leave-from-class="opacity-100"
+                  leave-to-class="opacity-0"
+                >
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 5. Performance (expandable) -->
+        <div v-if="navByRole.performance" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="performanceMenuOpen = !performanceMenuOpen"
+          >
+            <Target class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.performance') }}</span>
+            </Transition>
+            <component
+              :is="performanceMenuOpen ? ChevronDown : ChevronRight"
+              class="w-4 h-4 flex-shrink-0 transition-transform"
+            />
+          </button>
+          <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 max-h-0"
+            enter-to-class="opacity-100 max-h-[600px]"
+            leave-active-class="transition-all duration-200 ease-out"
+            leave-from-class="opacity-100 max-h-[600px]"
+            leave-to-class="opacity-0 max-h-0"
+          >
+            <div v-show="performanceMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in performanceSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href)
+                    ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component
+                  :is="item.icon"
+                  :class="[
+                    'w-4 h-4 flex-shrink-0 transition-transform duration-200',
+                    isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110',
+                  ]"
+                />
+                <Transition
+                  enter-active-class="transition-opacity duration-200"
+                  enter-from-class="opacity-0"
+                  enter-to-class="opacity-100"
+                  leave-active-class="transition-opacity duration-200"
+                  leave-from-class="opacity-100"
+                  leave-to-class="opacity-0"
+                >
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 6. Compensation & Benefits (expandable) -->
+        <div v-if="navByRole.compensationBenefits" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="compensationBenefitsMenuOpen = !compensationBenefitsMenuOpen"
+          >
+            <DollarSign class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.compensationBenefits') }}</span>
+            </Transition>
+            <component :is="compensationBenefitsMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="compensationBenefitsMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in compensationBenefitsSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 7. Talent Acquisition (expandable) -->
+        <div v-if="navByRole.talentAcquisition" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="talentAcquisitionMenuOpen = !talentAcquisitionMenuOpen"
+          >
+            <Briefcase class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.talentAcquisition') }}</span>
+            </Transition>
+            <component :is="talentAcquisitionMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="talentAcquisitionMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in talentAcquisitionSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 8. Workforce Planning (expandable) -->
+        <div v-if="navByRole.workforcePlanning" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="workforcePlanningMenuOpen = !workforcePlanningMenuOpen"
+          >
+            <Building2 class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.workforcePlanning') }}</span>
+            </Transition>
+            <component :is="workforcePlanningMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="workforcePlanningMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in workforcePlanningSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 9. Succession (expandable) -->
+        <div v-if="navByRole.succession" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="successionMenuOpen = !successionMenuOpen"
+          >
+            <GitBranch class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.succession') }}</span>
+            </Transition>
+            <component :is="successionMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="successionMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in successionSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 10. Learning (expandable) -->
+        <div v-if="navByRole.learning" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="learningMenuOpen = !learningMenuOpen"
+          >
+            <GraduationCap class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.learning') }}</span>
+            </Transition>
+            <component :is="learningMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="learningMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in learningSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 11. Insights (expandable) -->
+        <div v-if="navByRole.insights" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="insightsMenuOpen = !insightsMenuOpen"
+          >
+            <Bot class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.insights') }}</span>
+            </Transition>
+            <component :is="insightsMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="insightsMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in insightsSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 12. HR Service (expandable) -->
+        <div v-if="navByRole.hrService" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="hrServiceMenuOpen = !hrServiceMenuOpen"
+          >
+            <Settings class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.hrService') }}</span>
+            </Transition>
+            <component :is="hrServiceMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="hrServiceMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in hrServiceSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 13. Tasks (expandable) -->
+        <div v-if="navByRole.tasks" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="tasksMenuOpen = !tasksMenuOpen"
+          >
+            <ClipboardList class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.tasks') }}</span>
+            </Transition>
+            <component :is="tasksMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="tasksMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in tasksSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 4. Absensi - admin, hr -->
         <NuxtLink
+          v-if="navByRole.attendance"
           to="/attendance"
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
@@ -358,8 +1093,9 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 5. Cuti -->
+        <!-- 5. Cuti - admin, hr -->
         <NuxtLink
+          v-if="navByRole.leave"
           to="/leave"
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
@@ -387,8 +1123,9 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 6. Overtime -->
+        <!-- 6. Overtime - admin, hr -->
         <NuxtLink
+          v-if="navByRole.overtime"
           to="/overtime"
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
@@ -416,8 +1153,39 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 7. KPI -->
+        <!-- 6b. Shift & Jadwal - admin, hr -->
         <NuxtLink
+          v-if="navByRole.shifts"
+          to="/shifts"
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+            isNavActive('/shifts')
+              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          ]"
+          @click="isMobileSidebarOpen = false"
+        >
+          <CalendarRange
+            :class="[
+              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+              isNavActive('/shifts') ? 'text-foreground' : 'group-hover:scale-110',
+            ]"
+          />
+          <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.shifts') }}</span>
+          </Transition>
+        </NuxtLink>
+
+        <!-- 7. KPI - admin, hr -->
+        <NuxtLink
+          v-if="navByRole.kpi"
           to="/kpi"
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
@@ -445,8 +1213,137 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- 8. Recruitment (expandable) -->
-        <div class="space-y-1">
+        <!-- 7b. Laporan Tenaga Kerja - admin, hr -->
+        <NuxtLink
+          v-if="navByRole.workforceReports"
+          to="/workforce-reports"
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+            isNavActive('/workforce-reports')
+              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          ]"
+          @click="isMobileSidebarOpen = false"
+        >
+          <FileBarChart
+            :class="[
+              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+              isNavActive('/workforce-reports') ? 'text-foreground' : 'group-hover:scale-110',
+            ]"
+          />
+          <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.workforceReports') }}</span>
+          </Transition>
+        </NuxtLink>
+
+        <!-- 7c. Pengumuman - admin, hr, recruiter -->
+        <NuxtLink
+          v-if="navByRole.announcements"
+          to="/announcements"
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
+            isNavActive('/announcements')
+              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          ]"
+          @click="isMobileSidebarOpen = false"
+        >
+          <Megaphone
+            :class="[
+              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+              isNavActive('/announcements') ? 'text-foreground' : 'group-hover:scale-110',
+            ]"
+          />
+          <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.announcements') }}</span>
+          </Transition>
+        </NuxtLink>
+
+        <!-- 7d. Workforce Management (expandable) - admin, hr -->
+        <div v-if="navByRole.wfm" class="space-y-1">
+          <button
+            type="button"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            ]"
+            @click="wfmMenuOpen = !wfmMenuOpen"
+          >
+            <CalendarDays class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.wfm') }}</span>
+            </Transition>
+            <component
+              :is="wfmMenuOpen ? ChevronDown : ChevronRight"
+              class="w-4 h-4 flex-shrink-0 transition-transform"
+            />
+          </button>
+          <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 max-h-0"
+            enter-to-class="opacity-100 max-h-[600px]"
+            leave-active-class="transition-all duration-200 ease-out"
+            leave-from-class="opacity-100 max-h-[600px]"
+            leave-to-class="opacity-0 max-h-0"
+          >
+            <div v-show="wfmMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in wfmSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href)
+                    ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component
+                  :is="item.icon"
+                  :class="[
+                    'w-4 h-4 flex-shrink-0 transition-transform duration-200',
+                    isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110',
+                  ]"
+                />
+                <Transition
+                  enter-active-class="transition-opacity duration-200"
+                  enter-from-class="opacity-0"
+                  enter-to-class="opacity-100"
+                  leave-active-class="transition-opacity duration-200"
+                  leave-from-class="opacity-100"
+                  leave-to-class="opacity-0"
+                >
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ $t(item.name) }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- 8. Recruitment (expandable) - admin, hr, recruiter -->
+        <div v-if="navByRole.recruitment" class="space-y-1">
           <button
             type="button"
             :class="[
@@ -543,8 +1440,8 @@ function closeProfileDropdown() {
           </Transition>
         </div>
 
-        <!-- 5. Company (expandable) -->
-        <div class="space-y-1">
+        <!-- 5. Company (expandable) - admin, hr -->
+        <div v-if="navByRole.company" class="space-y-1">
           <button
             type="button"
             :class="[
@@ -612,8 +1509,9 @@ function closeProfileDropdown() {
           </Transition>
         </div>
 
-        <!-- 6. Learning Hub -->
+        <!-- 6. Learning Hub - admin, hr, recruiter -->
         <NuxtLink
+          v-if="navByRole.learningHub"
           to="/lms"
           :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
@@ -641,35 +1539,56 @@ function closeProfileDropdown() {
           </Transition>
         </NuxtLink>
 
-        <!-- Users (staff only) - bottom -->
-        <NuxtLink
-          v-if="authStore.isStaff"
-          to="/users"
-          :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group',
-            isNavActive('/users')
-              ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold'
-              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-          ]"
-          @click="isMobileSidebarOpen = false"
-        >
-          <UserCog
+        <!-- Management (expandable) -->
+        <div v-if="navByRole.users" class="space-y-1">
+          <button
+            type="button"
             :class="[
-              'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-              isNavActive('/users') ? 'text-foreground' : 'group-hover:scale-110',
+              'flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group',
+              'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             ]"
-          />
-          <Transition
-            enter-active-class="transition-opacity duration-200"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-opacity duration-200"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
+            @click="managementMenuOpen = !managementMenuOpen"
           >
-            <span v-if="isSidebarOpen" class="text-sm font-medium">{{ $t('nav.users') }}</span>
+            <UserCog class="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <Transition
+              enter-active-class="transition-opacity duration-200"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+              leave-active-class="transition-opacity duration-200"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <span v-if="isSidebarOpen" class="text-sm font-medium flex-1 text-left">{{ $t('nav.management') }}</span>
+            </Transition>
+            <component :is="managementMenuOpen ? ChevronDown : ChevronRight" class="w-4 h-4 flex-shrink-0 transition-transform" />
+          </button>
+          <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 max-h-0" enter-to-class="opacity-100 max-h-[500px]" leave-active-class="transition-all duration-200 ease-out" leave-from-class="opacity-100 max-h-[500px]" leave-to-class="opacity-0 max-h-0">
+            <div v-show="managementMenuOpen" class="space-y-1 pl-2 ml-2 border-l border-border">
+              <NuxtLink
+                v-for="item in managementSubMenu"
+                :key="item.name + item.href"
+                :to="item.href"
+                :class="[
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                  isNavActive(item.href) ? 'bg-foreground/10 text-foreground border border-foreground/20 font-semibold' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="isMobileSidebarOpen = false"
+              >
+                <component :is="item.icon" :class="['w-4 h-4 flex-shrink-0 transition-transform duration-200', isNavActive(item.href) ? 'text-foreground' : 'group-hover:scale-110']" />
+                <Transition
+                  enter-active-class="transition-opacity duration-200"
+                  enter-from-class="opacity-0"
+                  enter-to-class="opacity-100"
+                  leave-active-class="transition-opacity duration-200"
+                  leave-from-class="opacity-100"
+                  leave-to-class="opacity-0"
+                >
+                  <span v-if="isSidebarOpen" class="text-xs font-medium">{{ item.label }}</span>
+                </Transition>
+              </NuxtLink>
+            </div>
           </Transition>
-        </NuxtLink>
+        </div>
       </nav>
     </aside>
 
@@ -757,6 +1676,17 @@ function closeProfileDropdown() {
               <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ai-red" />
             </button>
 
+            <!-- AI Chatbot (opens panel; trigger moved from floating FAB to header) -->
+            <button
+              type="button"
+              class="p-2 rounded-xl hover:bg-muted/50 transition-colors"
+              :class="aiChatbotOpen ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'"
+              title="AI Assistant"
+              @click="toggleAiChatbot"
+            >
+              <Bot class="w-5 h-5" />
+            </button>
+
             <!-- Profile dropdown (Settings + Logout) -->
             <div ref="profileDropdownRef" class="relative">
               <button
@@ -767,7 +1697,7 @@ function closeProfileDropdown() {
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-t from-ai-orange to-ai-red flex items-center justify-center text-sm font-semibold text-white">
                   {{ userInitials }}
                 </div>
-                <div v-if="authStore.user" class="hidden lg:block text-left">
+                <div v-if="isClient && authStore.user" class="hidden lg:block text-left">
                   <p class="text-sm font-medium text-foreground">{{ authStore.user.name }}</p>
                   <p class="text-xs text-muted-foreground capitalize">{{ authStore.user.role }}</p>
                 </div>
@@ -791,7 +1721,7 @@ function closeProfileDropdown() {
                   <button
                     type="button"
                     class="flex items-center gap-3 w-full px-4 py-3 text-left text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-                    @click="closeProfileDropdown"
+                    @click="goSettings"
                   >
                     <Settings class="w-5 h-5 flex-shrink-0" />
                     <span class="font-medium">{{ $t('common.settings') }}</span>
@@ -816,6 +1746,7 @@ function closeProfileDropdown() {
         <slot />
       </main>
     </div>
+    <AiChatbot />
   </div>
 </template>
 

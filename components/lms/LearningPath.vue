@@ -11,12 +11,20 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
 const lmsStore = useLmsStore()
 
 const pathModules = computed(() => 
   props.path.modules.map(id => lmsStore.modules.find(m => m.id === id)).filter(Boolean)
 )
+
+const firstModuleUrl = computed(() => {
+  const id = pathModules.value[0]?.id
+  return id ? `/lms/${id}` : null
+})
+
+function goToFirstModule() {
+  if (firstModuleUrl.value) navigateTo(firstModuleUrl.value)
+}
 
 const formatDuration = (minutes: number): string => {
   const hours = Math.floor(minutes / 60)
@@ -30,6 +38,11 @@ const formatDuration = (minutes: number): string => {
       'glass-card p-6 transition-all duration-300 hover:ai-glow cursor-pointer',
       props.class
     )"
+    role="button"
+    tabindex="0"
+    @click="goToFirstModule"
+    @keydown.enter="goToFirstModule"
+    @keydown.space.prevent="goToFirstModule"
   >
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
@@ -49,7 +62,7 @@ const formatDuration = (minutes: number): string => {
     </div>
 
     <!-- Modules roadmap -->
-    <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
+    <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar" @click.stop>
       <template v-for="(module, index) in pathModules" :key="module?.id">
         <NuxtLink
           v-if="module?.id"

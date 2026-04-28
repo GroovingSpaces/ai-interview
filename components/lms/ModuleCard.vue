@@ -17,9 +17,7 @@ const emit = defineEmits<{
   start: [moduleId: string]
 }>()
 
-function goToDetail() {
-  if (!props.module.locked) navigateTo(`/lms/${props.module.id}`)
-}
+const detailUrl = computed(() => `/lms/${props.module.id}`)
 
 const difficultyColors = {
   beginner: 'bg-score-excellent/20 text-score-excellent border-score-excellent/30',
@@ -36,33 +34,17 @@ const formatDuration = (minutes: number): string => {
 </script>
 
 <template>
-  <div
+  <NuxtLink
+    v-if="!module.locked"
+    :to="detailUrl"
     :class="cn(
-      'group relative rounded-2xl p-6 transition-all duration-300 border',
-      module.locked
-        ? 'bg-muted/20 border-border cursor-not-allowed opacity-60'
-        : module.completed
-          ? 'bg-card border-score-excellent/30 hover:border-score-excellent/50 cursor-pointer'
-          : 'bg-card border-border hover:border-primary/30 cursor-pointer hover:shadow-lg hover:shadow-primary/5',
+      'group block relative rounded-2xl p-6 transition-all duration-300 border',
+      module.completed
+        ? 'bg-card border-score-excellent/30 hover:border-score-excellent/50 cursor-pointer'
+        : 'bg-card border-border hover:border-primary/30 cursor-pointer hover:shadow-lg hover:shadow-primary/5',
       props.class
     )"
-    role="button"
-    tabindex="0"
-    @click="goToDetail"
-    @keydown.enter="goToDetail"
-    @keydown.space.prevent="goToDetail"
   >
-    <!-- Locked overlay -->
-    <div
-      v-if="module.locked"
-      class="absolute inset-0 flex items-center justify-center rounded-2xl bg-background/50 backdrop-blur-sm z-10"
-    >
-      <div class="text-center space-y-2">
-        <Lock class="w-8 h-8 mx-auto text-muted-foreground" />
-        <p class="text-sm text-muted-foreground">Complete previous modules</p>
-      </div>
-    </div>
-
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div class="flex items-center gap-3">
@@ -124,22 +106,18 @@ const formatDuration = (minutes: number): string => {
           {{ module.lessons.length }} {{ t('learningHub.lessons') }}
         </span>
       </div>
-      <div class="flex items-center gap-2" @click.stop>
-        <NuxtLink
-          :to="`/lms/${module.id}`"
-          class="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-        >
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
           <ExternalLink class="w-4 h-4" />
           {{ t('learningHub.viewDetail') }}
-        </NuxtLink>
-        <NuxtLink
-          v-if="!module.locked && !module.completed"
-          :to="`/lms/${module.id}`"
-          class="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium"
+        </span>
+        <span
+          v-if="!module.completed"
+          class="inline-flex items-center gap-1 text-primary group-hover:underline text-sm font-medium"
         >
           <Play class="w-4 h-4" />
           {{ module.progress > 0 ? t('learningHub.continueModule') : t('learningHub.startModule') }}
-        </NuxtLink>
+        </span>
       </div>
     </div>
 
@@ -150,6 +128,87 @@ const formatDuration = (minutes: number): string => {
     >
       <Sparkles class="w-3 h-3" />
       {{ module.quiz.score }}%
+    </div>
+  </NuxtLink>
+
+  <!-- Locked state: non-clickable card -->
+  <div
+    v-else
+    :class="cn(
+      'group relative rounded-2xl p-6 transition-all duration-300 border bg-muted/20 border-border cursor-not-allowed opacity-60',
+      props.class
+    )"
+  >
+    <!-- Locked overlay -->
+    <div class="absolute inset-0 flex items-center justify-center rounded-2xl bg-background/50 backdrop-blur-sm z-10">
+      <div class="text-center space-y-2">
+        <Lock class="w-8 h-8 mx-auto text-muted-foreground" />
+        <p class="text-sm text-muted-foreground">Complete previous modules</p>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div
+          :class="cn(
+            'w-12 h-12 rounded-xl flex items-center justify-center text-2xl',
+            'bg-gradient-to-br from-primary/20 to-accent/20',
+          )"
+        >
+          <span>{{ module.icon }}</span>
+        </div>
+        <div>
+          <h3 class="font-semibold text-foreground">
+            {{ module.title }}
+          </h3>
+          <p class="text-sm text-muted-foreground">{{ module.category }}</p>
+        </div>
+      </div>
+      <span
+        :class="cn(
+          'px-2 py-1 rounded text-xs font-medium capitalize border',
+          difficultyColors[module.difficulty]
+        )"
+      >
+        {{ module.difficulty }}
+      </span>
+    </div>
+
+    <!-- Description -->
+    <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+      {{ module.description }}
+    </p>
+
+    <!-- Progress -->
+    <div class="space-y-2 mb-4">
+      <div class="flex justify-between text-sm">
+        <span class="text-muted-foreground">Progress</span>
+        <span class="font-medium">{{ module.progress }}%</span>
+      </div>
+      <UiProgress
+        :value="module.progress"
+        variant="gradient"
+        size="sm"
+      />
+    </div>
+
+    <!-- Footer (no links when locked) -->
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <div class="flex items-center gap-4 text-sm text-muted-foreground">
+        <span class="flex items-center gap-1">
+          <Clock class="w-4 h-4" />
+          {{ formatDuration(module.duration) }}
+        </span>
+        <span class="flex items-center gap-1">
+          <BookOpen class="w-4 h-4" />
+          {{ module.lessons.length }} {{ t('learningHub.lessons') }}
+        </span>
+      </div>
+      <span class="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground">
+        <ExternalLink class="w-4 h-4" />
+        {{ t('learningHub.viewDetail') }}
+      </span>
     </div>
   </div>
 </template>

@@ -3,12 +3,27 @@ import { ref, computed } from 'vue'
 
 export type AttendanceStatus = 'present' | 'late' | 'absent' | 'leave' | 'wfh'
 
+export interface AttendanceGeoPoint {
+  lat: number
+  lng: number
+  accuracy?: number
+  capturedAt: string
+}
+
 export interface Attendance {
   id: string
   employeeId: string
   date: string
   checkIn?: string
   checkOut?: string
+  /** Base64 captured face photo for clock-in evidence */
+  checkInPhoto?: string
+  /** Base64 captured face photo for clock-out evidence */
+  checkOutPhoto?: string
+  checkInGeo?: AttendanceGeoPoint
+  checkOutGeo?: AttendanceGeoPoint
+  /** Proof photo for manual Add Attendance submission */
+  manualProofPhoto?: string
   status: AttendanceStatus
   notes?: string
   /** Manual attendance needs approval by direct supervisor or admin */
@@ -85,6 +100,74 @@ export const useAttendanceStore = defineStore('attendance', () => {
     return records.value.find((r) => r.id === id)
   }
 
+  function getTodayRecordByEmployee(employeeId: string, date: string): Attendance | undefined {
+    return records.value.find((r) => r.employeeId === employeeId && r.date === date)
+  }
+
+  function clockInLive(payload: {
+    employeeId: string
+    date: string
+    time: string
+    photo: string
+    geo: AttendanceGeoPoint
+    notes?: string
+  }): { ok: boolean; reason?: string } {
+    const existing = getTodayRecordByEmployee(payload.employeeId, payload.date)
+    if (existing?.checkIn) return { ok: false, reason: 'already_clocked_in' }
+
+    const isLate = payload.time > '08:10'
+    if (!existing) {
+      addRecord({
+        employeeId: payload.employeeId,
+        date: payload.date,
+        checkIn: payload.time,
+        checkInPhoto: payload.photo,
+        checkInGeo: payload.geo,
+        status: isLate ? 'late' : 'present',
+        notes: payload.notes,
+        approved: true,
+      })
+      return { ok: true }
+    }
+
+    updateRecord(existing.id, {
+      checkIn: payload.time,
+      checkInPhoto: payload.photo,
+      checkInGeo: payload.geo,
+      status: existing.status === 'wfh' || existing.status === 'leave' ? existing.status : (isLate ? 'late' : 'present'),
+      notes: payload.notes ?? existing.notes,
+      approved: true,
+    })
+    return { ok: true }
+  }
+
+  function clockOutLive(payload: {
+    employeeId: string
+    date: string
+    time: string
+    photo: string
+    geo: AttendanceGeoPoint
+    notes?: string
+  }): { ok: boolean; reason?: string } {
+    const existing = getTodayRecordByEmployee(payload.employeeId, payload.date)
+    if (!existing?.checkIn) return { ok: false, reason: 'clock_in_required' }
+    if (existing.checkOut) return { ok: false, reason: 'already_clocked_out' }
+
+    updateRecord(existing.id, {
+      checkOut: payload.time,
+      checkOutPhoto: payload.photo,
+      checkOutGeo: payload.geo,
+      notes: payload.notes ?? existing.notes,
+      approved: true,
+    })
+    return { ok: true }
+  }
+
+  /** Records for a specific date (for dashboard "today" snapshot) */
+  function getRecordsByDate(date: string): Attendance[] {
+    return records.value.filter((r) => r.date === date)
+  }
+
   return {
     records,
     dateFilter,
@@ -97,5 +180,9 @@ export const useAttendanceStore = defineStore('attendance', () => {
     updateRecord,
     deleteRecord,
     getRecordById,
+    getTodayRecordByEmployee,
+    clockInLive,
+    clockOutLive,
+    getRecordsByDate,
   }
 })

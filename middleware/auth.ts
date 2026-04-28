@@ -1,6 +1,6 @@
 export default defineNuxtRouteMiddleware((to) => {
-  // Skip auth check on login page and apply routes (public)
-  if (to.path === '/portal-login' || to.path.startsWith('/apply')) {
+  // Public pages
+  if (to.path === '/portal-login') {
     return
   }
 
@@ -21,7 +21,7 @@ export default defineNuxtRouteMiddleware((to) => {
       if (parsedUser.role === 'candidate') {
         const adminRoutes = ['/', '/candidates', '/positions', '/interview', '/lms', '/users']
         if (adminRoutes.some(route => to.path === route || to.path.startsWith(route + '/'))) {
-          return navigateTo('/apply')
+          return navigateTo('/portal-login')
         }
       }
     } catch {

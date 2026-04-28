@@ -22,18 +22,61 @@ export interface CertificationItem {
   issuer: string
   date: string
   expiryDate?: string
+  credentialId?: string
 }
+
+export type FamilyRelationship =
+  | 'spouse'
+  | 'child'
+  | 'father'
+  | 'mother'
+  | 'sibling'
+  | 'emergency_contact'
+  | 'other'
+
+export interface FamilyMember {
+  relationship: FamilyRelationship
+  name: string
+  gender?: string
+  dateOfBirth?: string
+  occupation?: string
+  phone?: string
+  address?: string
+  notes?: string
+}
+
+export type EmployeeDocumentType =
+  | 'ktp'
+  | 'kk'
+  | 'npwp'
+  | 'bpjs_kesehatan'
+  | 'bpjs_ketenagakerjaan'
+  | 'ijazah'
+  | 'transcript'
+  | 'certificate'
+  | 'contract'
+  | 'photo'
+  | 'cv'
+  | 'reference_letter'
+  | 'other'
 
 export interface EmployeeDocument {
   id: string
   name: string
-  type: string
+  /** Document type / category */
+  type: EmployeeDocumentType | string
   /** Keterangan / description of the document */
   description?: string
   /** Original file name (when uploaded as file) */
   fileName?: string
   /** Base64 data URL of uploaded file (data:type;base64,...) */
   fileData?: string
+  /** Document number (e.g. KTP number, NPWP number) */
+  documentNumber?: string
+  /** Issued date */
+  issuedDate?: string
+  /** Expiry date (if applicable) */
+  expiryDate?: string
   /** @deprecated Link URL; use fileData for uploads */
   url?: string
   uploadedAt: string
@@ -66,6 +109,33 @@ export interface Employee {
   positionLevelId?: string
   locationId?: string
   organizationId?: string
+  /** Profile photo as base64 data URL */
+  photoUrl?: string
+  /** National ID number (KTP) */
+  nationalId?: string
+  /** Tax ID (NPWP) */
+  taxId?: string
+  /** Place of birth */
+  placeOfBirth?: string
+  /** Blood type */
+  bloodType?: string
+  /** Nationality */
+  nationality?: string
+  /** Personal email (non-work) */
+  personalEmail?: string
+  /** Number of dependents (for tax) */
+  dependents?: number
+  /** Bank account name */
+  bankAccountName?: string
+  /** Bank name */
+  bankName?: string
+  /** Bank account number */
+  bankAccountNumber?: string
+  /** BPJS Ketenagakerjaan number */
+  bpjsKetenagakerjaan?: string
+  /** BPJS Kesehatan number */
+  bpjsKesehatan?: string
+  family: FamilyMember[]
   workHistory: WorkHistoryItem[]
   education: EducationItem[]
   certifications: CertificationItem[]
@@ -100,9 +170,24 @@ export interface CreateEmployeePayload {
   positionLevelId?: string
   locationId?: string
   organizationId?: string
+  photoUrl?: string
+  nationalId?: string
+  taxId?: string
+  placeOfBirth?: string
+  bloodType?: string
+  nationality?: string
+  personalEmail?: string
+  dependents?: number
+  bankAccountName?: string
+  bankName?: string
+  bankAccountNumber?: string
+  bpjsKetenagakerjaan?: string
+  bpjsKesehatan?: string
+  family?: FamilyMember[]
   workHistory: WorkHistoryItem[]
   education: EducationItem[]
   certifications: CertificationItem[]
+  documents?: EmployeeDocument[]
   directSupervisorId?: string
   employeeStatus?: string
   contractStartDate?: string
@@ -136,6 +221,20 @@ export interface UpdateEmployeePayload {
   positionLevelId?: string
   locationId?: string
   organizationId?: string
+  photoUrl?: string
+  nationalId?: string
+  taxId?: string
+  placeOfBirth?: string
+  bloodType?: string
+  nationality?: string
+  personalEmail?: string
+  dependents?: number
+  bankAccountName?: string
+  bankName?: string
+  bankAccountNumber?: string
+  bpjsKetenagakerjaan?: string
+  bpjsKesehatan?: string
+  family?: FamilyMember[]
   workHistory?: WorkHistoryItem[]
   education?: EducationItem[]
   certifications?: CertificationItem[]
@@ -183,7 +282,21 @@ const emptyCertification = (): CertificationItem => ({
   issuer: '',
   date: '',
   expiryDate: '',
+  credentialId: '',
 })
+
+const emptyFamily = (): FamilyMember => ({
+  relationship: 'spouse',
+  name: '',
+  gender: '',
+  dateOfBirth: '',
+  occupation: '',
+  phone: '',
+  address: '',
+  notes: '',
+})
+
+export { emptyWorkHistory, emptyEducation, emptyCertification, emptyFamily }
 
 export const useEmployeesStore = defineStore('employees', () => {
   const employees = ref<Employee[]>([
@@ -218,9 +331,31 @@ export const useEmployeesStore = defineStore('employees', () => {
         },
       ],
       certifications: [
-        { name: 'AWS Solutions Architect', issuer: 'Amazon', date: '2021-06-01', expiryDate: '2024-06-01' },
+        { name: 'AWS Solutions Architect', issuer: 'Amazon', date: '2021-06-01', expiryDate: '2024-06-01', credentialId: 'AWS-SA-2021-001' },
       ],
-      documents: [],
+      family: [
+        { relationship: 'spouse', name: 'Siti Rizki', gender: 'female', dateOfBirth: '1992-08-12', occupation: 'Designer', phone: '+62 813-1111-2222' },
+        { relationship: 'child', name: 'Aisyah Rizki', gender: 'female', dateOfBirth: '2018-03-22' },
+        { relationship: 'emergency_contact', name: 'Bapak Rizki', phone: '+62 812-9999-8888', address: 'Bekasi' },
+      ],
+      documents: [
+        { id: 'd1-1', name: 'KTP Ahmad Rizki', type: 'ktp', documentNumber: '3174050505900012', uploadedAt: '2022-03-15' },
+        { id: 'd1-2', name: 'NPWP Ahmad Rizki', type: 'npwp', documentNumber: '12.345.678.9-012.345', uploadedAt: '2022-03-15' },
+        { id: 'd1-3', name: 'Ijazah S1 UI', type: 'ijazah', issuedDate: '2012-08-15', uploadedAt: '2022-03-15' },
+      ],
+      photoUrl: '',
+      nationalId: '3174050505900012',
+      taxId: '12.345.678.9-012.345',
+      placeOfBirth: 'Jakarta',
+      bloodType: 'O',
+      nationality: 'Indonesia',
+      personalEmail: 'a.rizki@gmail.com',
+      dependents: 2,
+      bankName: 'BCA',
+      bankAccountName: 'Ahmad Rizki',
+      bankAccountNumber: '1234567890',
+      bpjsKesehatan: '0001234567890',
+      bpjsKetenagakerjaan: '12345678901',
       directSupervisorId: '99',
       baseSalary: 15000000,
       contractStartDate: '2025-01-15',
@@ -241,6 +376,7 @@ export const useEmployeesStore = defineStore('employees', () => {
       workHistory: [],
       education: [],
       certifications: [],
+      family: [],
       documents: [],
       contractStartDate: '2025-01-01',
       contractDurationType: 'PERMANENT',
@@ -260,6 +396,7 @@ export const useEmployeesStore = defineStore('employees', () => {
       workHistory: [],
       education: [],
       certifications: [],
+      family: [],
       documents: [],
       directSupervisorId: '99',
       contractStartDate: '2025-02-01',
@@ -280,6 +417,7 @@ export const useEmployeesStore = defineStore('employees', () => {
       workHistory: [],
       education: [],
       certifications: [],
+      family: [],
       documents: [],
       contractStartDate: '2025-01-10',
       contractEndDate: '2025-04-09',
@@ -300,6 +438,7 @@ export const useEmployeesStore = defineStore('employees', () => {
       workHistory: [],
       education: [],
       certifications: [],
+      family: [],
       documents: [],
       contractStartDate: '2025-03-01',
       contractEndDate: '2025-08-31',
@@ -318,6 +457,7 @@ export const useEmployeesStore = defineStore('employees', () => {
       workHistory: [],
       education: [],
       certifications: [],
+      family: [],
       documents: [],
       contractStartDate: '2025-01-01',
       contractEndDate: '2026-01-01',
@@ -401,10 +541,24 @@ export const useEmployeesStore = defineStore('employees', () => {
       positionLevelId: payload.positionLevelId,
       locationId: payload.locationId,
       organizationId: payload.organizationId,
+      photoUrl: payload.photoUrl,
+      nationalId: payload.nationalId,
+      taxId: payload.taxId,
+      placeOfBirth: payload.placeOfBirth,
+      bloodType: payload.bloodType,
+      nationality: payload.nationality,
+      personalEmail: payload.personalEmail,
+      dependents: payload.dependents,
+      bankAccountName: payload.bankAccountName,
+      bankName: payload.bankName,
+      bankAccountNumber: payload.bankAccountNumber,
+      bpjsKesehatan: payload.bpjsKesehatan,
+      bpjsKetenagakerjaan: payload.bpjsKetenagakerjaan,
+      family: payload.family?.length ? payload.family : [],
       workHistory: payload.workHistory?.length ? payload.workHistory : [],
       education: payload.education?.length ? payload.education : [],
       certifications: payload.certifications?.length ? payload.certifications : [],
-      documents: [],
+      documents: payload.documents?.length ? payload.documents : [],
       directSupervisorId: payload.directSupervisorId,
       employeeStatus: payload.employeeStatus,
       contractStartDate: payload.contractStartDate,
@@ -425,6 +579,7 @@ export const useEmployeesStore = defineStore('employees', () => {
       employees.value[index] = {
         ...current,
         ...updates,
+        family: updates.family ?? current.family,
         workHistory: updates.workHistory ?? current.workHistory,
         education: updates.education ?? current.education,
         certifications: updates.certifications ?? current.certifications,

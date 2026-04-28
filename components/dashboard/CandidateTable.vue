@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h } from 'vue'
+import { computed, ref, h } from 'vue'
 import {
   useVueTable,
   getCoreRowModel,
@@ -29,15 +29,17 @@ const router = useRouter()
 const sorting = ref<SortingState>([])
 const globalFilter = ref('')
 
-const stageColors: Record<string, { bg: string; text: string; border: string }> = {
-  applied: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
-  screening: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/30' },
-  interview: { bg: 'bg-ai-red/10', text: 'text-ai-red', border: 'border-ai-red/30' },
-  assessment: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
-  offer: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-  hired: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/30' },
-  rejected: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/30' },
-}
+const stageColors = computed<Record<string, { bg: string; text: string; border: string }>>(() => {
+  return Object.fromEntries(
+    candidatesStore.recruitmentStages.map((stage) => [
+      stage.key,
+      (() => {
+        const [bg = 'bg-muted/30', border = 'border-border', text = 'text-muted-foreground'] = stage.tone.split(' ')
+        return { bg, border, text }
+      })(),
+    ])
+  )
+})
 
 const scoreColorClasses: Record<string, string> = {
   excellent: 'from-score-excellent to-emerald-400 text-score-excellent border-score-excellent/30 bg-score-excellent/10',
@@ -103,7 +105,7 @@ const columns: ColumnDef<Candidate>[] = [
     header: 'Stage',
     cell: ({ getValue }) => {
       const stage = getValue() as string
-      const colors = stageColors[stage] || stageColors.applied
+      const colors = stageColors.value[stage] || { bg: 'bg-muted/30', text: 'text-muted-foreground', border: 'border-border' }
       return h('span', {
         class: cn(
           'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize border',

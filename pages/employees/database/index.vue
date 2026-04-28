@@ -1,764 +1,249 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed } from 'vue'
+import { Plus, Search, Eye, Pencil, Trash2, UserCheck, UserX, Users, Mail, Phone } from 'lucide-vue-next'
+import { usePagination } from '~/composables/usePagination'
 import { useEmployeesStore } from '~/stores/employees'
 import { useCompanyStore } from '~/stores/company'
-import { useCandidatesStore } from '~/stores/candidates'
-import type {
-  Employee,
-  CreateEmployeePayload,
-  WorkHistoryItem,
-  EducationItem,
-  CertificationItem,
-} from '~/stores/employees'
-import {
-  getProvinceOptions,
-  getCityOptions,
-  getKecamatanOptions,
-  getKelurahanOptions,
-} from '~/data/indonesia-regions'
-import {
-  Search,
-  Plus,
-  UsersRound,
-  UserCheck,
-  UserX,
-  Edit,
-  Trash2,
-  X,
-  Check,
-  AlertTriangle,
-  Building2,
-  Power,
-  Briefcase,
-  GraduationCap,
-  Award,
-  Eye,
-} from 'lucide-vue-next'
+import { formatDate } from '~/lib/utils'
 
-definePageMeta({
-  middleware: 'admin',
-})
-
-const { title } = usePageTitle('employee')
-const tForm = useModuleT('employeeForm')
+definePageMeta({ middleware: 'admin' })
+const { title } = usePageTitle('employeeDatabase')
 useHead({ title: () => title.value })
 
-const route = useRoute()
+const router = useRouter()
 const employeesStore = useEmployeesStore()
 const companyStore = useCompanyStore()
-const candidatesStore = useCandidatesStore()
 
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
-const showDeleteModal = ref(false)
-const selectedEmployee = ref<Employee | null>(null)
-
-function emptyWorkHistory(): WorkHistoryItem {
-  return { company: '', position: '', startDate: '', endDate: '', description: '' }
-}
-function emptyEducation(): EducationItem {
-  return { institution: '', degree: '', fieldOfStudy: '', startYear: '', endYear: '' }
-}
-function emptyCertification(): CertificationItem {
-  return { name: '', issuer: '', date: '', expiryDate: '' }
-}
-
-const formData = ref({
-  name: '',
-  email: '',
-  employeeId: '',
-  department: '',
-  departmentId: '',
-  divisionId: '',
-  positionLevelId: '',
-  locationId: '',
-  organizationId: '',
-  position: '',
-  joinDate: '',
-  phone: '',
-  dateOfBirth: '',
-  gender: '',
-  religion: '',
-  marriageStatus: '',
-  address: '',
-  provinsi: '',
-  kota: '',
-  kecamatan: '',
-  kelurahan: '',
-  postalCode: '',
-  directSupervisorId: '',
-  employeeStatus: '',
-  contractDurationType: '' as '' | '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT',
-  contractStartDate: '',
-  contractEndDate: '',
-  workHistory: [] as WorkHistoryItem[],
-  education: [] as EducationItem[],
-  certifications: [] as CertificationItem[],
-})
-
-const statusOptions = [
-  { value: 'all', label: 'All Status' },
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
-]
+const confirmDeleteId = ref<string | null>(null)
 
 const departmentOptions = computed(() => [
-  { value: 'all', label: 'All Departments' },
+  { value: 'all', label: 'Semua Departemen' },
   ...employeesStore.departments.map((d) => ({ value: d, label: d })),
 ])
 
-// Company module options for Add/Edit form
-const formDepartmentOptions = computed(() => [
-  { value: '', label: 'Select department' },
-  ...companyStore.departments.map((d) => ({ value: d.id, label: d.name })),
-])
-const formDivisionOptions = computed(() => [
-  { value: '', label: 'Select division' },
-  ...companyStore.divisions.map((d) => ({ value: d.id, label: d.name })),
-])
-const formPositionLevelOptions = computed(() => [
-  { value: '', label: 'Select position level' },
-  ...companyStore.positionLevels.map((p) => ({ value: p.id, label: p.name })),
-])
-const formLocationOptions = computed(() => [
-  { value: '', label: 'Select location' },
-  ...companyStore.locations.map((l) => ({ value: l.id, label: l.name })),
-])
-const formOrganizationOptions = computed(() => [
-  { value: '', label: 'Select organization' },
-  ...companyStore.organizations.map((o) => ({ value: o.id, label: o.name })),
-])
+const statusOptions = [
+  { value: 'all', label: 'Semua Status' },
+  { value: 'active', label: 'Aktif' },
+  { value: 'inactive', label: 'Tidak Aktif' },
+]
 
-// Atasan langsung: semua karyawan kecuali diri sendiri saat edit
-const directSupervisorOptions = computed(() => {
-  const list = employeesStore.employees.map((e) => ({ value: e.id, label: `${e.name} (${e.employeeId})` }))
-  const excludeId = selectedEmployee.value?.id
-  const filtered = excludeId ? list.filter((o) => o.value !== excludeId) : list
-  return [{ value: '', label: tForm('selectSupervisor') }, ...filtered]
-})
+const filtered = computed(() => employeesStore.filteredEmployees)
+const pagination = usePagination(filtered, { pageSize: 10 })
 
-// Durasi kontrak: 3 bulan, 6 bulan, 1 tahun, karyawan tetap
-const contractDurationTypeOptions = computed(() => [
-  { value: '', label: tForm('selectContractDuration') || 'Pilih durasi kontrak' },
-  { value: '3_MONTHS', label: tForm('contractDuration3Months') || '3 bulan' },
-  { value: '6_MONTHS', label: tForm('contractDuration6Months') || '6 bulan' },
-  { value: '1_YEAR', label: tForm('contractDuration1Year') || '1 tahun' },
-  { value: 'PERMANENT', label: tForm('contractDurationPermanent') || 'Karyawan tetap' },
-])
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
 
-// Employee status: PKWTT, PKWT, INTERNSHIP, DAILY_WORKER, FREELANCE
-const employeeStatusOptions = computed(() => [
-  { value: '', label: tForm('selectEmployeeStatus') },
-  { value: 'PKWTT', label: tForm('statusPkwtt') },
-  { value: 'PKWT', label: tForm('statusPkwt') },
-  { value: 'INTERNSHIP', label: tForm('statusInternship') },
-  { value: 'DAILY_WORKER', label: tForm('statusDailyWorker') },
-  { value: 'FREELANCE', label: tForm('statusFreelance') },
-])
+function divisionName(id?: string): string {
+  if (!id) return '-'
+  return companyStore.getDivisionById(id)?.name ?? '-'
+}
 
-const genderOptions = computed(() => [
-  { value: '', label: tForm('selectGender') },
-  { value: 'MALE', label: tForm('male') },
-  { value: 'FEMALE', label: tForm('female') },
-])
-const religionOptions = computed(() => [
-  { value: '', label: tForm('selectReligion') },
-  { value: 'ISLAM', label: tForm('islam') },
-  { value: 'CHRISTIAN', label: tForm('christian') },
-  { value: 'CATHOLIC', label: tForm('catholic') },
-  { value: 'HINDU', label: tForm('hindu') },
-  { value: 'BUDDHIST', label: tForm('buddhist') },
-  { value: 'CONFUCIANISM', label: tForm('confucianism') },
-])
-const marriageStatusOptions = computed(() => [
-  { value: '', label: tForm('selectMarriageStatus') },
-  { value: 'SINGLE', label: tForm('single') },
-  { value: 'MARRIED', label: tForm('married') },
-  { value: 'DIVORCED', label: tForm('divorced') },
-  { value: 'WIDOWED', label: tForm('widowed') },
-])
-
-const provinceOptions = computed(() => getProvinceOptions(tForm('selectProvince')))
-const cityOptions = computed(() => getCityOptions(tForm('selectCity')))
-const kecamatanOptions = computed(() => getKecamatanOptions(tForm('selectSubDistrict')))
-const kelurahanOptions = computed(() => getKelurahanOptions(tForm('selectVillage')))
-
-function resetForm() {
-  formData.value = {
-    name: '',
-    email: '',
-    employeeId: '',
-    department: '',
-    departmentId: '',
-    divisionId: '',
-    positionLevelId: '',
-    locationId: '',
-    organizationId: '',
-    position: '',
-    joinDate: '',
-    phone: '',
-    dateOfBirth: '',
-    gender: '',
-    religion: '',
-    marriageStatus: '',
-    address: '',
-    provinsi: '',
-    kota: '',
-    kecamatan: '',
-    kelurahan: '',
-    postalCode: '',
-    directSupervisorId: '',
-    employeeStatus: '',
-    contractDurationType: '',
-    contractStartDate: '',
-    contractEndDate: '',
-    workHistory: [],
-    education: [],
-    certifications: [],
+function goAdd() {
+  router.push('/employees/database/add')
+}
+function goDetail(id: string) {
+  router.push(`/employees/database/${id}`)
+}
+function goEdit(id: string) {
+  router.push(`/employees/database/${id}/edit`)
+}
+function askDelete(id: string) {
+  confirmDeleteId.value = id
+}
+function cancelDelete() {
+  confirmDeleteId.value = null
+}
+function confirmDelete() {
+  if (confirmDeleteId.value) {
+    employeesStore.deleteEmployee(confirmDeleteId.value)
+    confirmDeleteId.value = null
   }
 }
-
-function addWorkHistory() {
-  formData.value.workHistory.push(emptyWorkHistory())
-}
-function removeWorkHistory(index: number) {
-  formData.value.workHistory.splice(index, 1)
+function toggleStatus(id: string) {
+  employeesStore.toggleEmployeeStatus(id)
 }
 
-function addEducation() {
-  formData.value.education.push(emptyEducation())
-}
-function removeEducation(index: number) {
-  formData.value.education.splice(index, 1)
-}
-
-function addCertification() {
-  formData.value.certifications.push(emptyCertification())
-}
-function removeCertification(index: number) {
-  formData.value.certifications.splice(index, 1)
-}
-
-function openCreateModal() {
-  resetForm()
-  showCreateModal.value = true
-}
-
-function openEditModal(emp: Employee) {
-  selectedEmployee.value = emp
-  const deptId = emp.departmentId ?? companyStore.departments.find((d) => d.name === emp.department)?.id ?? ''
-  formData.value = {
-    name: emp.name,
-    email: emp.email,
-    employeeId: emp.employeeId,
-    department: emp.department,
-    departmentId: deptId,
-    divisionId: emp.divisionId ?? '',
-    positionLevelId: emp.positionLevelId ?? '',
-    locationId: emp.locationId ?? '',
-    organizationId: emp.organizationId ?? '',
-    position: emp.position,
-    joinDate: emp.joinDate,
-    phone: emp.phone || '',
-    dateOfBirth: emp.dateOfBirth || '',
-    gender: emp.gender ?? '',
-    religion: emp.religion ?? '',
-    marriageStatus: emp.marriageStatus ?? '',
-    address: emp.address || '',
-    provinsi: emp.provinsi ?? '',
-    kota: emp.kota ?? '',
-    kecamatan: emp.kecamatan ?? '',
-    kelurahan: emp.kelurahan ?? '',
-    postalCode: emp.postalCode ?? '',
-    directSupervisorId: emp.directSupervisorId ?? '',
-    employeeStatus: emp.employeeStatus ?? '',
-    contractDurationType: (emp.contractDurationType ?? '') as '' | '3_MONTHS' | '6_MONTHS' | '1_YEAR' | 'PERMANENT',
-    contractStartDate: emp.contractStartDate ?? '',
-    contractEndDate: emp.contractEndDate ?? '',
-    workHistory: emp.workHistory?.length
-      ? emp.workHistory.map((w) => ({ ...w, description: w.description ?? '' }))
-      : [],
-    education: emp.education?.length ? [...emp.education] : [],
-    certifications: emp.certifications?.length ? [...emp.certifications] : [],
-  }
-  showEditModal.value = true
-}
-
-function openDeleteModal(emp: Employee) {
-  selectedEmployee.value = emp
-  showDeleteModal.value = true
-}
-
-function closeModals() {
-  showCreateModal.value = false
-  showEditModal.value = false
-  showDeleteModal.value = false
-  selectedEmployee.value = null
-  resetForm()
-}
-
-function sanitizeWorkHistory(): WorkHistoryItem[] {
-  return formData.value.workHistory
-    .filter((w) => w.company.trim() || w.position.trim())
-    .map((w) => ({
-      company: w.company.trim(),
-      position: w.position.trim(),
-      startDate: w.startDate,
-      endDate: w.endDate,
-      description: w.description?.trim() || undefined,
-    }))
-}
-function sanitizeEducation(): EducationItem[] {
-  return formData.value.education
-    .filter((e) => e.institution.trim() || e.degree.trim())
-    .map((e) => ({
-      institution: e.institution.trim(),
-      degree: e.degree.trim(),
-      fieldOfStudy: e.fieldOfStudy.trim(),
-      startYear: e.startYear.trim(),
-      endYear: e.endYear.trim(),
-    }))
-}
-function sanitizeCertifications(): CertificationItem[] {
-  return formData.value.certifications
-    .filter((c) => c.name.trim() || c.issuer.trim())
-    .map((c) => ({
-      name: c.name.trim(),
-      issuer: c.issuer.trim(),
-      date: c.date,
-      expiryDate: c.expiryDate || undefined,
-    }))
-}
-
-function handleCreate() {
-  const departmentName = formData.value.departmentId
-    ? companyStore.getDepartmentById(formData.value.departmentId)?.name ?? ''
-    : formData.value.department.trim()
-  const payload: CreateEmployeePayload = {
-    name: formData.value.name.trim(),
-    email: formData.value.email.trim(),
-    employeeId: formData.value.employeeId.trim(),
-    department: departmentName,
-    position: formData.value.position.trim(),
-    joinDate: formData.value.joinDate,
-    phone: formData.value.phone.trim() || undefined,
-    dateOfBirth: formData.value.dateOfBirth.trim() || undefined,
-    gender: formData.value.gender || undefined,
-    religion: formData.value.religion || undefined,
-    marriageStatus: formData.value.marriageStatus || undefined,
-    address: formData.value.address.trim() || undefined,
-    provinsi: formData.value.provinsi || undefined,
-    kota: formData.value.kota || undefined,
-    kecamatan: formData.value.kecamatan || undefined,
-    kelurahan: formData.value.kelurahan || undefined,
-    postalCode: formData.value.postalCode.trim() || undefined,
-    departmentId: formData.value.departmentId || undefined,
-    divisionId: formData.value.divisionId || undefined,
-    positionLevelId: formData.value.positionLevelId || undefined,
-    locationId: formData.value.locationId || undefined,
-    organizationId: formData.value.organizationId || undefined,
-    workHistory: sanitizeWorkHistory(),
-    education: sanitizeEducation(),
-    certifications: sanitizeCertifications(),
-    directSupervisorId: formData.value.directSupervisorId || undefined,
-    employeeStatus: formData.value.employeeStatus || undefined,
-    contractStartDate: formData.value.contractStartDate.trim() || undefined,
-    contractDurationType: formData.value.contractDurationType || undefined,
-  }
-  employeesStore.addEmployee(payload)
-  closeModals()
-}
-
-function handleUpdate() {
-  if (!selectedEmployee.value) return
-  const departmentName = formData.value.departmentId
-    ? companyStore.getDepartmentById(formData.value.departmentId)?.name ?? ''
-    : formData.value.department.trim()
-  employeesStore.updateEmployee(selectedEmployee.value.id, {
-    name: formData.value.name.trim(),
-    email: formData.value.email.trim(),
-    employeeId: formData.value.employeeId.trim(),
-    department: departmentName,
-    position: formData.value.position.trim(),
-    joinDate: formData.value.joinDate,
-    phone: formData.value.phone.trim() || undefined,
-    dateOfBirth: formData.value.dateOfBirth.trim() || undefined,
-    gender: formData.value.gender || undefined,
-    religion: formData.value.religion || undefined,
-    marriageStatus: formData.value.marriageStatus || undefined,
-    address: formData.value.address.trim() || undefined,
-    provinsi: formData.value.provinsi || undefined,
-    kota: formData.value.kota || undefined,
-    kecamatan: formData.value.kecamatan || undefined,
-    kelurahan: formData.value.kelurahan || undefined,
-    postalCode: formData.value.postalCode.trim() || undefined,
-    departmentId: formData.value.departmentId || undefined,
-    divisionId: formData.value.divisionId || undefined,
-    positionLevelId: formData.value.positionLevelId || undefined,
-    locationId: formData.value.locationId || undefined,
-    organizationId: formData.value.organizationId || undefined,
-    workHistory: sanitizeWorkHistory(),
-    education: sanitizeEducation(),
-    certifications: sanitizeCertifications(),
-    directSupervisorId: formData.value.directSupervisorId || undefined,
-    employeeStatus: formData.value.employeeStatus || undefined,
-    contractStartDate: formData.value.contractStartDate.trim() || undefined,
-    contractEndDate: formData.value.contractDurationType && formData.value.contractStartDate
-      ? (formData.value.contractDurationType === 'PERMANENT' ? undefined : computedContractEndDate(formData.value.contractStartDate, formData.value.contractDurationType) || undefined)
-      : formData.value.contractEndDate.trim() || undefined,
-    contractDurationType: formData.value.contractDurationType || undefined,
-  })
-  closeModals()
-}
-
-function handleDelete() {
-  if (!selectedEmployee.value) return
-  employeesStore.deleteEmployee(selectedEmployee.value.id)
-  closeModals()
-}
-
-function handleToggleStatus(emp: Employee) {
-  employeesStore.toggleEmployeeStatus(emp.id)
-}
-
-function goToDetail(emp: Employee) {
-  navigateTo(`/employees/${emp.id}`)
-}
-
-onMounted(() => {
-  const editId = route.query.edit as string | undefined
-  if (editId) {
-    const emp = employeesStore.getEmployeeById(editId)
-    if (emp) openEditModal(emp)
-    return
-  }
-  const addFromCandidateId = route.query.addFromCandidate as string | undefined
-  if (addFromCandidateId) {
-    const candidate = candidatesStore.candidates.find((c) => c.id === addFromCandidateId)
-    if (candidate) {
-      resetForm()
-      const dept = companyStore.departments.find((d) => d.name === candidate.department)
-      const today = new Date().toISOString().slice(0, 10)
-      formData.value = {
-        name: candidate.name,
-        email: candidate.email,
-        employeeId: `EMP-${candidate.id}`,
-        department: candidate.department,
-        departmentId: dept?.id ?? '',
-        divisionId: '',
-        positionLevelId: '',
-        locationId: '',
-        organizationId: '',
-        position: candidate.position,
-        joinDate: today,
-        phone: candidate.phone || '',
-        dateOfBirth: '',
-        gender: '',
-        religion: '',
-        marriageStatus: '',
-        address: '',
-        provinsi: '',
-        kota: '',
-        kecamatan: '',
-        kelurahan: '',
-        postalCode: '',
-        directSupervisorId: '',
-        employeeStatus: '',
-        contractDurationType: '',
-        contractStartDate: '',
-        contractEndDate: '',
-        workHistory: [],
-        education: [],
-        certifications: [],
-      }
-      showCreateModal.value = true
-    }
-  }
-})
-
-const isFormValid = computed(() => {
-  return (
-    formData.value.name.trim() !== '' &&
-    formData.value.email.trim() !== '' &&
-    formData.value.employeeId.trim() !== '' &&
-    formData.value.departmentId !== '' &&
-    formData.value.position.trim() !== '' &&
-    formData.value.joinDate !== ''
-  )
-})
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-function addMonthsToDate(dateStr: string, months: number): string {
-  const d = new Date(dateStr)
-  d.setMonth(d.getMonth() + months)
-  return d.toISOString().slice(0, 10)
-}
-
-function computedContractEndDate(startDate: string, type: string): string {
-  if (!startDate || !type || type === 'PERMANENT') return ''
-  if (type === '3_MONTHS') return addMonthsToDate(startDate, 3)
-  if (type === '6_MONTHS') return addMonthsToDate(startDate, 6)
-  if (type === '1_YEAR') return addMonthsToDate(startDate, 12)
-  return ''
-}
-
-function formatContractPeriod(start?: string, end?: string, durationType?: string): string {
-  if (!start && !end) return '-'
-  const permanentLabel = tForm('contractDurationPermanent') || 'Karyawan tetap'
-  if (durationType === 'PERMANENT' || !end) return start ? `${formatDate(start)} – ${permanentLabel}` : '-'
-  if (start && end) return `${formatDate(start)} – ${formatDate(end)}`
-  if (start) return formatDate(start)
-  return end ? formatDate(end) : '-'
-}
-
-function formatContractDurationLabel(type?: string): string {
-  if (!type) return '-'
-  if (type === '3_MONTHS') return tForm('contractDuration3Months') || '3 bulan'
-  if (type === '6_MONTHS') return tForm('contractDuration6Months') || '6 bulan'
-  if (type === '1_YEAR') return tForm('contractDuration1Year') || '1 tahun'
-  if (type === 'PERMANENT') return tForm('contractDurationPermanent') || 'Karyawan tetap'
-  return '-'
-}
-
-function formatContractDuration(emp: { contractDurationType?: string; contractStartDate?: string; contractEndDate?: string }): string {
-  if (emp.contractDurationType) return formatContractDurationLabel(emp.contractDurationType)
-  if (!emp.contractStartDate || !emp.contractEndDate) return '-'
-  const d1 = new Date(emp.contractStartDate)
-  const d2 = new Date(emp.contractEndDate)
-  if (d2 <= d1) return '-'
-  const months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth())
-  const years = Math.floor(months / 12)
-  const remainderMonths = months % 12
-  if (years === 0) return `${months} ${months === 1 ? (tForm('month') || 'bulan') : (tForm('months') || 'bulan')}`
-  if (remainderMonths === 0) return `${years} ${years === 1 ? (tForm('year') || 'tahun') : (tForm('years') || 'tahun')}`
-  const y = `${years} ${years === 1 ? (tForm('year') || 'tahun') : (tForm('years') || 'tahun')}`
-  const m = `${remainderMonths} ${remainderMonths === 1 ? (tForm('month') || 'bulan') : (tForm('months') || 'bulan')}`
-  return `${y} ${m}`
-}
+const stats = computed(() => employeesStore.employeeStats)
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
         <h1 class="text-2xl font-bold text-foreground">{{ title }}</h1>
-        <p class="text-muted-foreground">Manage employees and organizational structure</p>
+        <p class="text-sm text-muted-foreground">Kelola data karyawan: personal, keluarga, riwayat kerja, pendidikan, sertifikasi & dokumen.</p>
       </div>
-      <UiButton variant="gradient" @click="openCreateModal">
+      <UiButton variant="gradient" @click="goAdd">
         <Plus class="w-4 h-4" />
-        Add Employee
+        Tambah Karyawan
       </UiButton>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-primary/10">
-            <UsersRound class="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-foreground">{{ employeesStore.employeeStats.total }}</p>
-            <p class="text-xs text-muted-foreground">Total</p>
-          </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="glass-card p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <Users class="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <p class="text-xs text-muted-foreground">Total Karyawan</p>
+          <p class="text-2xl font-bold text-foreground">{{ stats.total }}</p>
         </div>
       </div>
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-score-excellent/10">
-            <UserCheck class="w-5 h-5 text-score-excellent" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-foreground">{{ employeesStore.employeeStats.active }}</p>
-            <p class="text-xs text-muted-foreground">Active</p>
-          </div>
+      <div class="glass-card p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-score-good/10 flex items-center justify-center">
+          <UserCheck class="w-6 h-6 text-score-good" />
+        </div>
+        <div>
+          <p class="text-xs text-muted-foreground">Karyawan Aktif</p>
+          <p class="text-2xl font-bold text-foreground">{{ stats.active }}</p>
         </div>
       </div>
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-score-low/10">
-            <UserX class="w-5 h-5 text-score-low" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-foreground">{{ employeesStore.employeeStats.inactive }}</p>
-            <p class="text-xs text-muted-foreground">Inactive</p>
-          </div>
+      <div class="glass-card p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-score-low/10 flex items-center justify-center">
+          <UserX class="w-6 h-6 text-score-low" />
         </div>
-      </div>
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-ai-red/10">
-            <Building2 class="w-5 h-5 text-ai-red" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-foreground">{{ employeesStore.departments.length }}</p>
-            <p class="text-xs text-muted-foreground">Departments</p>
-          </div>
+        <div>
+          <p class="text-xs text-muted-foreground">Tidak Aktif</p>
+          <p class="text-2xl font-bold text-foreground">{{ stats.inactive }}</p>
         </div>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-col lg:flex-row gap-4">
-      <div class="flex-1 relative">
-        <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <div class="glass-card p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="relative">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <UiInput
           v-model="employeesStore.searchQuery"
-          placeholder="Search by name, email, employee ID, department..."
-          class="pl-11"
+          placeholder="Cari nama, email, NIK, jabatan..."
+          class="pl-9"
         />
       </div>
-      <div class="flex flex-wrap gap-2">
-        <UiSelect
-          v-model="employeesStore.departmentFilter"
-          :options="departmentOptions"
-          class="w-44"
-        />
-        <UiSelect
-          v-model="employeesStore.statusFilter"
-          :options="statusOptions"
-          class="w-36"
-        />
-      </div>
+      <UiSelect v-model="employeesStore.departmentFilter" :options="departmentOptions" />
+      <UiSelect v-model="employeesStore.statusFilter" :options="statusOptions" />
     </div>
 
-    <!-- Employees List -->
-    <div class="space-y-4">
-      <p class="text-sm text-muted-foreground">
-        Showing {{ employeesStore.filteredEmployees.length }} employee(s)
-      </p>
-
-      <div v-if="employeesStore.filteredEmployees.length === 0" class="glass-card p-12 text-center">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-          <UsersRound class="w-8 h-8 text-muted-foreground" />
-        </div>
-        <h3 class="text-lg font-semibold text-foreground mb-2">No Employees Found</h3>
-        <p class="text-muted-foreground mb-4">Try adjusting your search or filter, or add a new employee.</p>
-        <UiButton variant="gradient" @click="openCreateModal">
-          <Plus class="w-4 h-4" />
-          Add Employee
-        </UiButton>
-      </div>
-
-      <!-- Table -->
-      <div v-else class="rounded-xl border border-border overflow-hidden bg-card/50 backdrop-blur-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-max">
-            <thead>
-              <tr class="border-b border-border bg-muted/30">
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Employee</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Position</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Join Date</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ tForm('contractPeriod') || 'Masa Kontrak' }}</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ tForm('contractDuration') || 'Durasi Kontrak' }}</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="emp in employeesStore.filteredEmployees"
-                :key="emp.id"
-                class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
-              >
-                <td class="px-4 py-4">
-                  <div class="flex items-center gap-3">
-                    <UiAvatar :alt="emp.name" size="md" />
-                    <div>
-                      <button
-                        type="button"
-                        class="font-medium text-foreground hover:text-ai-red hover:underline transition-colors text-left"
-                        @click="goToDetail(emp)"
-                      >
-                        {{ emp.name }}
-                      </button>
-                      <p class="text-sm text-muted-foreground">{{ emp.email }}</p>
+    <!-- Table -->
+    <div class="rounded-xl border border-border overflow-hidden bg-card/50 backdrop-blur-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-border bg-muted/30">
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Karyawan</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">NIK</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Departemen / Divisi</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Posisi</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Bergabung</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+              <th class="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="emp in pagination.pagedItems.value"
+              :key="emp.id"
+              class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+            >
+              <td class="px-4 py-3">
+                <NuxtLink :to="`/employees/database/${emp.id}`" class="flex items-center gap-3 min-w-0 group">
+                  <div class="flex h-10 w-10 shrink-0 overflow-hidden rounded-full items-center justify-center bg-gradient-to-t from-ai-orange to-ai-red font-semibold text-white text-sm">
+                    {{ getInitials(emp.name) }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-medium text-foreground truncate group-hover:text-primary transition-colors">{{ emp.name }}</p>
+                    <div class="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span class="flex items-center gap-1 truncate">
+                        <Mail class="w-3 h-3 shrink-0" />
+                        <span class="truncate">{{ emp.email }}</span>
+                      </span>
+                      <span v-if="emp.phone" class="hidden md:flex items-center gap-1 truncate">
+                        <Phone class="w-3 h-3 shrink-0" />
+                        <span class="truncate">{{ emp.phone }}</span>
+                      </span>
                     </div>
                   </div>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm font-mono text-muted-foreground">{{ emp.employeeId }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ emp.department }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ emp.position }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ formatDate(emp.joinDate) }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ formatContractPeriod(emp.contractStartDate, emp.contractEndDate, emp.contractDurationType) }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span class="text-sm text-muted-foreground">{{ formatContractDuration(emp) }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span
-                    :class="[
-                      'px-3 py-1 rounded-full text-xs font-medium border',
-                      emp.isActive
-                        ? 'bg-score-excellent/10 text-score-excellent border-score-excellent/30'
-                        : 'bg-score-low/10 text-score-low border-score-low/30',
-                    ]"
+                </NuxtLink>
+              </td>
+              <td class="px-4 py-3 text-sm font-mono text-foreground">{{ emp.employeeId }}</td>
+              <td class="px-4 py-3 text-sm">
+                <p class="text-foreground">{{ emp.department }}</p>
+                <p class="text-xs text-muted-foreground">{{ divisionName(emp.divisionId) }}</p>
+              </td>
+              <td class="px-4 py-3 text-sm text-foreground">{{ emp.position }}</td>
+              <td class="px-4 py-3 text-sm text-muted-foreground">{{ formatDate(emp.joinDate) }}</td>
+              <td class="px-4 py-3">
+                <button
+                  type="button"
+                  :class="[
+                    'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                    emp.isActive
+                      ? 'bg-score-good/10 text-score-good border-score-good/30 hover:bg-score-good/20'
+                      : 'bg-score-low/10 text-score-low border-score-low/30 hover:bg-score-low/20',
+                  ]"
+                  @click.stop="toggleStatus(emp.id)"
+                >
+                  {{ emp.isActive ? 'Aktif' : 'Tidak Aktif' }}
+                </button>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-1">
+                  <NuxtLink
+                    :to="`/employees/database/${emp.id}`"
+                    class="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                    title="Lihat detail"
                   >
-                    {{ emp.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <button
-                      type="button"
-                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="View Detail"
-                      @click="goToDetail(emp)"
-                    >
-                      <Eye class="w-4 h-4 text-muted-foreground" />
-                    </button>
-                    <button
-                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="Toggle Status"
-                      @click="handleToggleStatus(emp)"
-                    >
-                      <Power :class="['w-4 h-4', emp.isActive ? 'text-score-excellent' : 'text-score-low']" />
-                    </button>
-                    <button
-                      class="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="Edit Employee"
-                      @click="openEditModal(emp)"
-                    >
-                      <Edit class="w-4 h-4 text-muted-foreground" />
-                    </button>
-                    <button
-                      class="p-2 rounded-lg hover:bg-score-low/10 transition-colors"
-                      title="Delete Employee"
-                      @click="openDeleteModal(emp)"
-                    >
-                      <Trash2 class="w-4 h-4 text-score-low" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-            </table>
-        </div>
+                    <Eye class="w-4 h-4" />
+                  </NuxtLink>
+                  <button
+                    class="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-primary transition-colors"
+                    title="Edit"
+                    @click.stop="goEdit(emp.id)"
+                  >
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button
+                    class="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    title="Hapus"
+                    @click.stop="askDelete(emp.id)"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+
+      <UiEmptyState
+        v-if="pagination.total.value === 0"
+        :icon="Users"
+        title="Tidak ada karyawan"
+        description="Coba ubah pencarian atau filter, atau tambah karyawan baru."
+      />
+      <UiPagination
+        v-else
+        :page-index="pagination.pageIndex.value"
+        :page-count="pagination.pageCount.value"
+        :page-size="pagination.pageSize.value"
+        :total="pagination.total.value"
+        :from-index="pagination.fromIndex.value"
+        :to-index="pagination.toIndex.value"
+        item-label="karyawan"
+        @update:page-index="pagination.goToPage"
+        @update:page-size="pagination.setPageSize"
+      />
     </div>
 
-    <!-- Create/Edit Modal (Advanced Form) -->
+    <!-- Delete confirmation -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition duration-200 ease-out"
@@ -769,417 +254,19 @@ function formatContractDuration(emp: { contractDurationType?: string; contractSt
         leave-to-class="opacity-0"
       >
         <div
-          v-if="showCreateModal || showEditModal"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          v-if="confirmDeleteId"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+          @click.self="cancelDelete"
         >
-          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeModals" />
-
-          <div class="relative w-full max-w-4xl bg-card border border-border rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border p-6 z-10">
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-foreground">
-                  {{ showCreateModal ? 'Add New Employee' : 'Edit Employee' }}
-                </h2>
-                <button class="p-2 rounded-lg hover:bg-muted/50 transition-colors" @click="closeModals">
-                  <X class="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div class="p-6 space-y-8 overflow-y-auto flex-1">
-              <!-- Section: Data Pribadi & Pekerjaan -->
-              <div class="space-y-4">
-                <h3 class="text-sm font-semibold text-foreground border-b border-border pb-2">Data Pribadi & Pekerjaan</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Full Name *</label>
-                    <UiInput v-model="formData.name" placeholder="Enter full name" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Email *</label>
-                    <UiInput v-model="formData.email" type="email" placeholder="Enter email address" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Employee ID *</label>
-                    <UiInput v-model="formData.employeeId" placeholder="e.g. EMP001" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Date of Birth</label>
-                    <UiInput v-model="formData.dateOfBirth" type="date" placeholder="YYYY-MM-DD" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Phone</label>
-                    <UiInput v-model="formData.phone" type="tel" placeholder="e.g. +62 812-3456-7890" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('gender') }}</label>
-                    <UiSelect
-                      v-model="formData.gender"
-                      :options="genderOptions"
-                      :placeholder="tForm('selectGender')"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('religion') }}</label>
-                    <UiSelect
-                      v-model="formData.religion"
-                      :options="religionOptions"
-                      :placeholder="tForm('selectReligion')"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('marriageStatus') }}</label>
-                    <UiSelect
-                      v-model="formData.marriageStatus"
-                      :options="marriageStatusOptions"
-                      :placeholder="tForm('selectMarriageStatus')"
-                    />
-                  </div>
-                  <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-foreground mb-2">Address</label>
-                    <UiInput v-model="formData.address" placeholder="Full address" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('province') }}</label>
-                    <UiSelect
-                      v-model="formData.provinsi"
-                      :options="provinceOptions"
-                      :placeholder="tForm('selectProvince')"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('city') }}</label>
-                    <UiSelect
-                      v-model="formData.kota"
-                      :options="cityOptions"
-                      :placeholder="tForm('selectCity')"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('subDistrict') }}</label>
-                    <UiSelect
-                      v-model="formData.kecamatan"
-                      :options="kecamatanOptions"
-                      :placeholder="tForm('selectSubDistrict')"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('village') }}</label>
-                    <UiSelect
-                      v-model="formData.kelurahan"
-                      :options="kelurahanOptions"
-                      :placeholder="tForm('selectVillage')"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('postalCode') }}</label>
-                    <UiInput v-model="formData.postalCode" placeholder="e.g. 12345" maxlength="10" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Organization</label>
-                    <UiSelect
-                      v-model="formData.organizationId"
-                      :options="formOrganizationOptions"
-                      placeholder="Select organization"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Department *</label>
-                    <UiSelect
-                      v-model="formData.departmentId"
-                      :options="formDepartmentOptions"
-                      placeholder="Select department"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Division</label>
-                    <UiSelect
-                      v-model="formData.divisionId"
-                      :options="formDivisionOptions"
-                      placeholder="Select division"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Position *</label>
-                    <UiInput v-model="formData.position" placeholder="e.g. Software Engineer" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Position Level</label>
-                    <UiSelect
-                      v-model="formData.positionLevelId"
-                      :options="formPositionLevelOptions"
-                      placeholder="Select position level"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Location</label>
-                    <UiSelect
-                      v-model="formData.locationId"
-                      :options="formLocationOptions"
-                      placeholder="Select location"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Join Date *</label>
-                    <UiInput v-model="formData.joinDate" type="date" placeholder="YYYY-MM-DD" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('contractDuration') || 'Durasi Kontrak' }}</label>
-                    <UiSelect
-                      v-model="formData.contractDurationType"
-                      :options="contractDurationTypeOptions"
-                      :placeholder="tForm('selectContractDuration') || 'Pilih durasi kontrak'"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('contractStartDate') || 'Mulai Kontrak' }}</label>
-                    <UiInput v-model="formData.contractStartDate" type="date" placeholder="YYYY-MM-DD" />
-                  </div>
-                  <div v-if="formData.contractDurationType && formData.contractDurationType !== 'PERMANENT' && formData.contractStartDate">
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('contractEndDate') || 'Selesai Kontrak' }}</label>
-                    <p class="text-sm text-muted-foreground py-2">{{ formatDate(computedContractEndDate(formData.contractStartDate, formData.contractDurationType)) }}</p>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('employeeStatus') }}</label>
-                    <UiSelect
-                      v-model="formData.employeeStatus"
-                      :options="employeeStatusOptions"
-                      :placeholder="tForm('selectEmployeeStatus')"
-                    />
-                  </div>
-                  <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-foreground mb-2">{{ tForm('directSupervisorLabel') }}</label>
-                    <UiSelect
-                      v-model="formData.directSupervisorId"
-                      :options="directSupervisorOptions"
-                      :placeholder="tForm('selectSupervisorPlaceholder')"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Section: Riwayat Pekerjaan (Repeater) -->
-              <div class="space-y-4">
-                <div class="flex items-center justify-between border-b border-border pb-2">
-                  <h3 class="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Briefcase class="w-4 h-4" />
-                    Riwayat Pekerjaan
-                  </h3>
-                  <UiButton type="button" variant="outline" size="sm" @click="addWorkHistory">
-                    <Plus class="w-4 h-4" />
-                    Tambah
-                  </UiButton>
-                </div>
-                <div v-if="formData.workHistory.length === 0" class="rounded-xl border border-dashed border-border p-6 text-center text-muted-foreground text-sm">
-                  Belum ada riwayat pekerjaan. Klik "Tambah" untuk menambah.
-                </div>
-                <div v-else class="space-y-4">
-                  <div
-                    v-for="(item, index) in formData.workHistory"
-                    :key="'wh-' + index"
-                    class="rounded-xl border border-border bg-muted/20 p-4 space-y-3"
-                  >
-                    <div class="flex justify-between items-center">
-                      <span class="text-xs font-medium text-muted-foreground">Pekerjaan #{{ index + 1 }}</span>
-                      <button
-                        type="button"
-                        class="p-1.5 rounded-lg hover:bg-score-low/10 text-score-low transition-colors"
-                        title="Hapus"
-                        @click="removeWorkHistory(index)"
-                      >
-                        <Trash2 class="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Perusahaan</label>
-                        <UiInput v-model="item.company" placeholder="Nama perusahaan" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Jabatan</label>
-                        <UiInput v-model="item.position" placeholder="Jabatan" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Mulai</label>
-                        <UiInput v-model="item.startDate" type="date" placeholder="YYYY-MM-DD" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Selesai</label>
-                        <UiInput v-model="item.endDate" type="date" placeholder="YYYY-MM-DD" />
-                      </div>
-                      <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Deskripsi</label>
-                        <UiInput v-model="item.description" placeholder="Deskripsi singkat (opsional)" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Section: Riwayat Pendidikan (Repeater) -->
-              <div class="space-y-4">
-                <div class="flex items-center justify-between border-b border-border pb-2">
-                  <h3 class="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <GraduationCap class="w-4 h-4" />
-                    Riwayat Pendidikan
-                  </h3>
-                  <UiButton type="button" variant="outline" size="sm" @click="addEducation">
-                    <Plus class="w-4 h-4" />
-                    Tambah
-                  </UiButton>
-                </div>
-                <div v-if="formData.education.length === 0" class="rounded-xl border border-dashed border-border p-6 text-center text-muted-foreground text-sm">
-                  Belum ada riwayat pendidikan. Klik "Tambah" untuk menambah.
-                </div>
-                <div v-else class="space-y-4">
-                  <div
-                    v-for="(item, index) in formData.education"
-                    :key="'edu-' + index"
-                    class="rounded-xl border border-border bg-muted/20 p-4 space-y-3"
-                  >
-                    <div class="flex justify-between items-center">
-                      <span class="text-xs font-medium text-muted-foreground">Pendidikan #{{ index + 1 }}</span>
-                      <button
-                        type="button"
-                        class="p-1.5 rounded-lg hover:bg-score-low/10 text-score-low transition-colors"
-                        title="Hapus"
-                        @click="removeEducation(index)"
-                      >
-                        <Trash2 class="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Institusi</label>
-                        <UiInput v-model="item.institution" placeholder="Nama sekolah/universitas" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Gelar / Jenjang</label>
-                        <UiInput v-model="item.degree" placeholder="e.g. S1, S2, SMA" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Bidang Studi</label>
-                        <UiInput v-model="item.fieldOfStudy" placeholder="e.g. Computer Science" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Tahun Mulai</label>
-                        <UiInput v-model="item.startYear" placeholder="e.g. 2015" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Tahun Selesai</label>
-                        <UiInput v-model="item.endYear" placeholder="e.g. 2019" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Section: Sertifikasi (Repeater) -->
-              <div class="space-y-4">
-                <div class="flex items-center justify-between border-b border-border pb-2">
-                  <h3 class="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Award class="w-4 h-4" />
-                    Sertifikasi
-                  </h3>
-                  <UiButton type="button" variant="outline" size="sm" @click="addCertification">
-                    <Plus class="w-4 h-4" />
-                    Tambah
-                  </UiButton>
-                </div>
-                <div v-if="formData.certifications.length === 0" class="rounded-xl border border-dashed border-border p-6 text-center text-muted-foreground text-sm">
-                  Belum ada sertifikasi. Klik "Tambah" untuk menambah.
-                </div>
-                <div v-else class="space-y-4">
-                  <div
-                    v-for="(item, index) in formData.certifications"
-                    :key="'cert-' + index"
-                    class="rounded-xl border border-border bg-muted/20 p-4 space-y-3"
-                  >
-                    <div class="flex justify-between items-center">
-                      <span class="text-xs font-medium text-muted-foreground">Sertifikasi #{{ index + 1 }}</span>
-                      <button
-                        type="button"
-                        class="p-1.5 rounded-lg hover:bg-score-low/10 text-score-low transition-colors"
-                        title="Hapus"
-                        @click="removeCertification(index)"
-                      >
-                        <Trash2 class="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Nama Sertifikasi</label>
-                        <UiInput v-model="item.name" placeholder="e.g. AWS Solutions Architect" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Penerbit</label>
-                        <UiInput v-model="item.issuer" placeholder="e.g. Amazon Web Services" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Tanggal Terbit</label>
-                        <UiInput v-model="item.date" type="date" placeholder="YYYY-MM-DD" />
-                      </div>
-                      <div>
-                        <label class="block text-xs font-medium text-muted-foreground mb-1">Tanggal Kadaluarsa (opsional)</label>
-                        <UiInput v-model="item.expiryDate" type="date" placeholder="YYYY-MM-DD" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="sticky bottom-0 bg-card/95 backdrop-blur-sm border-t border-border p-6 z-10">
-              <div class="flex justify-end gap-3">
-                <UiButton variant="outline" @click="closeModals">Cancel</UiButton>
-                <UiButton
-                  variant="gradient"
-                  :disabled="!isFormValid"
-                  @click="showCreateModal ? handleCreate() : handleUpdate()"
-                >
-                  <Check class="w-4 h-4" />
-                  {{ showCreateModal ? 'Add Employee' : 'Save Changes' }}
-                </UiButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
-    <!-- Delete Confirmation Modal -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition duration-150 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeModals" />
-
-          <div class="relative w-full max-w-md bg-card border border-border rounded-2xl p-6">
-            <div class="text-center">
-              <div class="w-16 h-16 mx-auto rounded-full bg-score-low/10 flex items-center justify-center mb-4">
-                <AlertTriangle class="w-8 h-8 text-score-low" />
-              </div>
-              <h2 class="text-xl font-bold text-foreground mb-2">Delete Employee</h2>
-              <p class="text-muted-foreground mb-6">
-                Are you sure you want to delete "{{ selectedEmployee?.name }}" ({{ selectedEmployee?.employeeId }})? This action cannot be undone.
-              </p>
-              <div class="flex justify-center gap-3">
-                <UiButton variant="outline" @click="closeModals">Cancel</UiButton>
-                <UiButton
-                  variant="outline"
-                  class="text-score-low border-score-low/30 hover:bg-score-low/10"
-                  @click="handleDelete"
-                >
-                  <Trash2 class="w-4 h-4" />
-                  Delete
-                </UiButton>
-              </div>
+          <div class="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <h3 class="text-lg font-semibold text-foreground">Hapus Karyawan?</h3>
+            <p class="text-sm text-muted-foreground mt-1">Tindakan ini tidak dapat dibatalkan. Data karyawan beserta dokumen akan dihapus.</p>
+            <div class="flex justify-end gap-2 mt-5">
+              <UiButton variant="outline" @click="cancelDelete">Batal</UiButton>
+              <UiButton variant="destructive" @click="confirmDelete">
+                <Trash2 class="w-4 h-4" />
+                Hapus
+              </UiButton>
             </div>
           </div>
         </div>

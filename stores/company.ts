@@ -17,11 +17,16 @@ export interface Division {
   description?: string
 }
 
-// Position Level
+/** Role / jenjang jabatan umum: Staff → Supervisor → Manager → Director → Level C */
+export type PositionRoleKey = 'staff' | 'supervisor' | 'manager' | 'director' | 'c_level'
+
+// Position Level (Jenjang Jabatan)
 export interface PositionLevel {
   id: string
   name: string
   level: number
+  /** Role untuk akses / hierarki: staff, supervisor, manager, director, c_level */
+  roleKey?: PositionRoleKey
   description?: string
 }
 
@@ -99,15 +104,13 @@ export const useCompanyStore = defineStore('company', () => {
   }
   const getDivisionById = (id: string) => divisions.value.find((d) => d.id === id)
 
-  // Position Levels
+  // Position Levels (Role: Staff → Supervisor → Manager → Director → Level C)
   const positionLevels = ref<PositionLevel[]>([
-    { id: '1', name: 'Staff', level: 1, description: 'Entry level' },
-    { id: '2', name: 'Senior Staff', level: 2, description: 'Senior individual contributor' },
-    { id: '3', name: 'Supervisor', level: 3, description: 'Team lead' },
-    { id: '4', name: 'Manager', level: 4, description: 'Department manager' },
-    { id: '5', name: 'Director', level: 5, description: 'Director level' },
-    { id: '6', name: 'VP', level: 6, description: 'Vice President' },
-    { id: '7', name: 'C-Level', level: 7, description: 'Executive' },
+    { id: '1', name: 'Staff', level: 1, roleKey: 'staff', description: 'Staf / karyawan operasional' },
+    { id: '2', name: 'Supervisor', level: 2, roleKey: 'supervisor', description: 'Supervisor / pengawas tim' },
+    { id: '3', name: 'Manager', level: 3, roleKey: 'manager', description: 'Manager / manajer unit/department' },
+    { id: '4', name: 'Director', level: 4, roleKey: 'director', description: 'Director / direktur' },
+    { id: '5', name: 'Level C', level: 5, roleKey: 'c_level', description: 'C-Level / eksekutif (CEO, CTO, CFO, dll)' },
   ])
 
   const addPositionLevel = (item: Omit<PositionLevel, 'id'>): string => {

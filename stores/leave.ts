@@ -166,6 +166,31 @@ export const useLeaveStore = defineStore('leave', () => {
     return requests.value.find((r) => r.id === id)
   }
 
+  /** Annual leave balance for an employee in a given year (quota 12 days default). */
+  const DEFAULT_ANNUAL_QUOTA = 12
+  function getAnnualBalance(employeeId: string, year: string): { quota: number; used: number; remaining: number } {
+    const y = Number(year)
+    const startOfYear = `${year}-01-01`
+    const endOfYear = `${year}-12-31`
+    const approvedAnnual = requests.value.filter(
+      (r) =>
+        r.employeeId === employeeId &&
+        r.type === 'annual' &&
+        r.status === 'approved' &&
+        r.endDate >= startOfYear &&
+        r.startDate <= endOfYear
+    )
+    let used = 0
+    for (const r of approvedAnnual) {
+      const start = r.startDate < startOfYear ? startOfYear : r.startDate
+      const end = r.endDate > endOfYear ? endOfYear : r.endDate
+      const days = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)) + 1
+      used += days
+    }
+    const quota = DEFAULT_ANNUAL_QUOTA
+    return { quota, used, remaining: Math.max(0, quota - used) }
+  }
+
   return {
     requests,
     employeeFilter,
@@ -182,5 +207,6 @@ export const useLeaveStore = defineStore('leave', () => {
     approveRequest,
     rejectRequest,
     getRequestById,
+    getAnnualBalance,
   }
 })

@@ -39,14 +39,31 @@ async function handleLogin() {
   }
 }
 
-// Demo credentials info - only internal staff
+// Demo credentials – role sistem (Admin, HR, Recruiter)
 const demoCredentials = [
-  { role: 'Admin', email: 'admin@telkomsel.com', password: 'admin123' },
-  { role: 'HR', email: 'hr@telkomsel.com', password: 'hr123' },
-  { role: 'Recruiter', email: 'recruiter@telkomsel.com', password: 'recruiter123' },
+  { role: 'Admin', email: 'admin@telkomsel.com', password: 'admin123', desc: 'Full access' },
+  { role: 'HR', email: 'hr@telkomsel.com', password: 'hr123', desc: 'HCM, no Users' },
+  { role: 'Recruiter', email: 'recruiter@telkomsel.com', password: 'recruiter123', desc: 'Recruitment & Learning' },
 ]
 
-function fillCredentials(cred: typeof demoCredentials[0]) {
+// Demo credentials – jenjang jabatan (Level C, Manager, Supervisor, Staff)
+const levelCredentials = [
+  { role: 'Level C', email: 'levelc@telkomsel.com', password: 'levelc123', desc: 'Eksekutif, full access' },
+  { role: 'Manager', email: 'manager@telkomsel.com', password: 'manager123', desc: 'Manajer, HCM + Recruitment' },
+  { role: 'Supervisor', email: 'supervisor@telkomsel.com', password: 'supervisor123', desc: 'Atendance, Leave, Learning' },
+  { role: 'Staff', email: 'staff@telkomsel.com', password: 'staff123', desc: 'Operasional, menu terbatas' },
+]
+
+// Demo for candidate
+const candidateCredential = {
+  role: 'Candidate',
+  email: 'candidate@email.com',
+  password: 'candidate123',
+  desc: 'Candidate portal currently disabled',
+}
+
+type CredentialItem = { role: string; email: string; password: string; desc?: string }
+function fillCredentials(cred: CredentialItem) {
   email.value = cred.email
   password.value = cred.password
 }
@@ -57,7 +74,7 @@ function fillCredentials(cred: typeof demoCredentials[0]) {
     <!-- Background effects -->
     <div class="fixed inset-0 radial-overlay pointer-events-none" />
     
-    <div class="w-full max-w-md relative z-10">
+    <div class="w-full max-w-2xl relative z-10">
       <!-- Logo & Header -->
       <div class="text-center mb-8">
         <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-t from-ai-orange to-ai-red p-0.5 mb-4">
@@ -152,34 +169,66 @@ function fillCredentials(cred: typeof demoCredentials[0]) {
         <!-- Divider -->
         <div class="relative my-8">
           <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-border"></div>
+            <div class="w-full border-t border-border" />
           </div>
-          <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-card px-2 text-muted-foreground">Demo Credentials</span>
+          <div class="relative flex justify-center">
+            <span class="bg-card px-2 text-xs font-medium uppercase text-muted-foreground">Demo credentials – klik untuk isi</span>
           </div>
         </div>
 
-        <!-- Demo Credentials -->
-        <div class="grid grid-cols-3 gap-2">
-          <button
-            v-for="cred in demoCredentials"
-            :key="cred.role"
-            type="button"
-            class="p-3 rounded-xl bg-muted/30 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
-            @click="fillCredentials(cred)"
-          >
-            <p class="text-sm font-medium text-foreground">{{ cred.role }}</p>
-            <p class="text-xs text-muted-foreground truncate">{{ cred.email }}</p>
-          </button>
+        <!-- Demo: Role sistem (Admin, HR, Recruiter) -->
+        <div class="space-y-3">
+          <p class="text-xs font-medium text-muted-foreground">Role sistem</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button
+              v-for="cred in demoCredentials"
+              :key="cred.role"
+              type="button"
+              class="p-4 rounded-xl bg-muted/30 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+              @click="fillCredentials(cred)"
+            >
+              <p class="text-sm font-semibold text-foreground">{{ cred.role }}</p>
+              <p class="text-xs text-muted-foreground mt-0.5">{{ cred.desc }}</p>
+              <p class="text-xs text-foreground/80 mt-2 font-mono truncate" :title="cred.email">{{ cred.email }}</p>
+              <p class="text-xs text-muted-foreground font-mono">PW: {{ cred.password }}</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Demo: Jenjang jabatan (Level C, Manager, Supervisor, Staff) -->
+        <div class="space-y-3 mt-6">
+          <p class="text-xs font-medium text-muted-foreground">Jenjang jabatan (Level C, Manager, Supervisor, Staff)</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button
+              v-for="cred in levelCredentials"
+              :key="cred.role"
+              type="button"
+              class="p-4 rounded-xl bg-muted/30 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+              @click="fillCredentials(cred)"
+            >
+              <p class="text-sm font-semibold text-foreground">{{ cred.role }}</p>
+              <p class="text-xs text-muted-foreground mt-0.5 line-clamp-2">{{ cred.desc }}</p>
+              <p class="text-xs text-foreground/80 mt-2 font-mono truncate" :title="cred.email">{{ cred.email }}</p>
+              <p class="text-xs text-muted-foreground font-mono">PW: {{ cred.password }}</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Candidate demo -->
+        <div class="mt-6 p-4 rounded-xl bg-muted/20 border border-border">
+          <p class="text-xs font-medium text-muted-foreground mb-2">Demo role Candidate (portal kandidat)</p>
+          <p class="text-xs text-foreground/90 mb-2">
+            Email: <code class="px-1.5 py-0.5 rounded bg-muted text-foreground">{{ candidateCredential.email }}</code><br>
+            Password: <code class="px-1.5 py-0.5 rounded bg-muted text-foreground">{{ candidateCredential.password }}</code>
+          </p>
+          <p class="text-xs text-muted-foreground">Portal kandidat saat ini tidak tersedia.</p>
         </div>
       </div>
 
       <!-- Candidate Link -->
-      <p class="text-center mt-6 text-muted-foreground">
+      <p class="text-center mt-6 text-muted-foreground text-sm">
         Are you a candidate?
-        <NuxtLink to="/apply" class="text-primary hover:underline font-medium">
-          Go to Career Portal
-        </NuxtLink>
+        <span class="text-muted-foreground font-medium"> Candidate portal is currently unavailable</span>
       </p>
     </div>
   </div>
