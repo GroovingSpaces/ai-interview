@@ -395,7 +395,7 @@ function actionTypeColor(type: string): string {
     </UiPageHeader>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
       <UiStatCard label="Total Kontrak" :value="contractsStore.stats.total" :icon="FileText" />
       <UiStatCard label="Aktif" :value="contractsStore.stats.active" tone="good" :icon="FileText" />
       <UiStatCard label="Akan Berakhir (60 hari)" :value="contractsStore.stats.expiringSoon" tone="average" :icon="AlertTriangle" />

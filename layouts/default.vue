@@ -1628,7 +1628,7 @@ function goSettings() {
 
           <div class="flex items-center gap-2">
             <!-- Language switcher (EN / ID) -->
-            <div class="flex rounded-xl border border-border overflow-hidden bg-muted/30">
+            <!-- <div class="flex rounded-xl border border-border overflow-hidden bg-muted/30">
               <button
                 type="button"
                 :class="[
@@ -1653,7 +1653,7 @@ function goSettings() {
               >
                 ID
               </button>
-            </div>
+            </div> -->
 
             <!-- Theme toggle (Light/Dark) di navbar -->
             <ClientOnly>
