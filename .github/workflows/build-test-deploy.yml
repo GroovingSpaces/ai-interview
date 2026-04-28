@@ -22,10 +22,10 @@ jobs:
           
   deploy-prod:
     name: 🚀 Deploy AI Interview (Prod)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment:
       name: prod-ai interview
-      url: https://hcm.brightyindonesia.com/
+      url: https://hcm.groovingspaces.com/
     needs: docker-build-test
 
     steps:
