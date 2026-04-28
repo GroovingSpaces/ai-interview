@@ -22,7 +22,7 @@ jobs:
           
   deploy-prod:
     name: 🚀 Deploy AI Interview (Prod)
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     environment:
       name: prod-ai interview
       url: https://hcm.groovingspaces.com/
